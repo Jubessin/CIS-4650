@@ -1,1 +1,5 @@
 Extras
+*.class
+sym.java
+Lexer.java
+Parser.java
