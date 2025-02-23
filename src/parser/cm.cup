@@ -3,15 +3,27 @@
 * TODO: File description
 */
 
-terminal IF, ELSE, WHILE;
+terminal IF, WHILE;
 terminal ERROR;
 
-nonterminal Exp program;
-nonterminal Exp stmt_seq;
+nonterminal Exp program, declaration, declaration_list;
 
 start with program;
 
-program                 ::= stmt_seq:s
-{:
-    RESULT = s;
+program                 ::= declaration_list:d {:
+    RESULT = d;
 :};
+
+declaration_list                ::= declaration_list:d1 declaration:d2 {:
+    var t = d1;
+
+    while (t != null)
+        t = t.tail;
+    
+    t.tail = new ExpList(d2, null);
+    RESULT = d1;
+:} | declaration:s {:
+    RESULT = new ExpList(s, null);
+:}; // TODO: Error 
+
+
