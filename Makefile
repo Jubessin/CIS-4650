@@ -10,9 +10,14 @@ SRC=src
 MAIN_SRC=$(SRC)/Main.java
 MAIN_OUT=$(SRC)/Main.class
 
-SCANNER_SRC=$(SRC)/scanner
-LEXER_SRC=$(SCANNER_SRC)/*.flex
-LEXER_OUT=$(SCANNER_SRC)/Lexer.java
+PARSER_DIR=$(SRC)/parser
+PARSER_SRC=$(PARSER_DIR)/*.cup
+PARSER_OUT=$(PARSER_DIR)/Parser
+SYMBOLS_OUT=$(PARSER_DIR)/Symbols
+
+SCANNER_DIR=$(SRC)/scanner
+SCANNER_SRC=$(SCANNER_DIR)/*.flex
+SCANNER_OUT=$(SCANNER_DIR)/Lexer.java
 
 all: $(MAIN_OUT)
 
@@ -21,12 +26,16 @@ all: $(MAIN_OUT)
 # 	$(JAVAC) $(CLASSPATH) $^
 
 Main.java: $(MAIN_OUT)
-Lexer.java: $(LEXER_OUT)
+Lexer.java: $(SCANNER_OUT)
+Parser.java: $(PARSER_OUT)
 
-$(MAIN_OUT): $(LEXER_OUT) $(MAIN_SRC)
+$(MAIN_OUT): $(SCANNER_OUT) $(MAIN_SRC)
 
-$(LEXER_OUT): $(LEXER_SRC)
-	$(JFLEX) $(LEXER_SRC)
+$(SCANNER_OUT): $(SCANNER_SRC)
+	$(JFLEX) $(SCANNER_SRC)
+
+$(PARSER_OUT): $(PARSER_SRC)
+	$(CUP) -expect 3 -parser $(PARSER_OUT) -symbols $(SYMBOLS_OUT) $(PARSER_SRC)
 
 clean:
-	rm -f $(LEXER_OUT) $(MAIN_OUT) $(SRC)**/*.class *~
+	rm -f $(SCANNER_OUT) $(MAIN_OUT) $(SRC)**/*.class *~

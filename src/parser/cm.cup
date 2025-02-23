@@ -1,0 +1,17 @@
+/*
+* File Name: cm.cup
+* TODO: File description
+*/
+
+terminal IF, ELSE, WHILE;
+terminal ERROR;
+
+nonterminal Exp program;
+nonterminal Exp stmt_seq;
+
+start with program;
+
+program                 ::= stmt_seq:s
+{:
+    RESULT = s;
+:};
