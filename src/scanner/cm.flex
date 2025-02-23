@@ -38,6 +38,7 @@ DIGIT = [0-9]
 // NUMBER is all integers.
 NUMBER = {DIGIT}+
 
+// This may need to be changed to avoid nested comments
 COMMENT = "/\*.*\*/"
 
 TRUTH = "true"|"false"
