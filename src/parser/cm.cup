@@ -36,12 +36,8 @@ declaration_list                ::= declaration_list:d1 declaration:d2 {:
 
 declaration                     ::= var_declaration:d {:
     RESULT = d;
-:} | fun_declaration:d {:
-    RESULT = d;
-:} | fun_prototype:p {:
-    RESULT = p;
 :};
 
 type_specifier                  ::= BOOL:b {:
     RESULT = new BoolExp(b)
-:}
+:};
