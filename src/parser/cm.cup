@@ -3,7 +3,7 @@
 * TODO: File description
 */
 
-terminal IF, WHILE;
+terminal IF, WHILE, BOOL, INT;
 terminal ERROR;
 
 non terminal Exp program; 
@@ -30,8 +30,8 @@ declaration_list                ::= declaration_list:d1 declaration:d2 {:
     
     t.tail = new ExpList(d2, null);
     RESULT = d1;
-:} | declaration:s {:
-    RESULT = new ExpList(s, null);
+:} | declaration:d {:
+    RESULT = new ExpList(d, null);
 :}; // TODO: Error 
 
 declaration                     ::= var_declaration:d {:
@@ -41,3 +41,7 @@ declaration                     ::= var_declaration:d {:
 :} | fun_prototype:p {:
     RESULT = p;
 :};
+
+type_specifier                  ::= BOOL:b {:
+    RESULT = new BoolExp(b)
+:}
