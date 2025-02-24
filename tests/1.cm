@@ -1,0 +1,18 @@
+/* 
+* File Name: 1.cm
+* Tests the C- compiler, and should compile with no errors.
+*/
+
+int _integer;
+bool _boolean;
+
+_integer = 77;
+_boolean = false;
+
+while (_integer < 80) {
+    _integer += 1;
+}
+
+_boolean = true;
+
+return _boolean;
