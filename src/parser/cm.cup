@@ -6,13 +6,15 @@
 terminal IF, WHILE;
 terminal ERROR;
 
-nonterminal Exp program; 
+non terminal Exp program; 
 
-nonterminal Exp declaration_list;
-nonterminal Exp local_declarations;
-nonterminal Exp declaration, var_declaration, fun_declaration; 
+non terminal Exp declaration_list;
+non terminal Exp local_declarations;
+non terminal Exp declaration, var_declaration, fun_declaration; 
 
-nonterminal Exp fun_prototype;
+non terminal Exp fun_prototype;
+
+non terminal Exp type_specifier;
 
 start with program;
 
