@@ -1,5 +1,5 @@
 Extras
 *.class
-Lexer.java
+Lexer.java*
 Parser.java
-Symbols.java
+Symbol.java

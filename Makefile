@@ -13,7 +13,7 @@ MAIN_OUT=$(SRC)/Main.class
 PARSER_DIR=$(SRC)/parser
 PARSER_SRC=$(PARSER_DIR)/*.cup
 PARSER_OUT=$(PARSER_DIR)/Parser
-SYMBOLS_OUT=$(PARSER_DIR)/Symbols
+SYMBOL_OUT=$(PARSER_DIR)/Symbol
 
 ABSYN_DIR = $(PARSER_DIR)/absyn
 ABSYN_SRC = $(ABSYN_DIR)/*.java
@@ -35,14 +35,17 @@ Parser.java: $(PARSER_OUT)
 $(MAIN_OUT): $(SCANNER_OUT) $(MAIN_SRC) $(PARSER_OUT) $(ABSYN_OUT)
 	$(JAVAC) $(MAIN_SRC)
 
-$(SCANNER_OUT): $(SCANNER_SRC)
+$(SCANNER_OUT): $(SCANNER_SRC) #$(PARSER_OUT)
 	$(JFLEX) $(SCANNER_SRC)
+	#$(JAVAC) $(SCANNER_OUT)
 
 $(PARSER_OUT): $(PARSER_SRC)
-	$(CUP) -expect 3 -parser $(PARSER_OUT) -symbols $(SYMBOLS_OUT) $(PARSER_SRC)
+	$(CUP) -expect 3 -parser Parser -symbols Symbol $(PARSER_SRC)
+	mv Parser.java -t $(PARSER_DIR)
+	mv Symbol.java -t $(SCANNER_DIR)
 
 $(ABSYN_OUT): $(ABSYN_SRC)
 	$(JAVAC) $(ABSYN_SRC)
 
 clean:
-	rm -f $(SCANNER_OUT) $(MAIN_OUT) $(PARSER_OUT).java $(SYMBOLS_OUT).java $(ABSYN_OUT) $(SRC)**/*.class *~
+	rm -f $(SCANNER_OUT)* $(MAIN_OUT) $(PARSER_OUT).java $(SYMBOL_OUT).java $(ABSYN_OUT) $(SRC)**/*.class *~
