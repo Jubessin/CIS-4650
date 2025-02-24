@@ -6,11 +6,17 @@
 terminal IF, WHILE;
 terminal ERROR;
 
-nonterminal Exp program, declaration, declaration_list;
+nonterminal Exp program; 
+
+nonterminal Exp declaration_list;
+nonterminal Exp local_declarations;
+nonterminal Exp declaration, var_declaration, fun_declaration; 
+
+nonterminal Exp fun_prototype;
 
 start with program;
 
-program                 ::= declaration_list:d {:
+program                         ::= declaration_list:d {:
     RESULT = d;
 :};
 
@@ -26,4 +32,10 @@ declaration_list                ::= declaration_list:d1 declaration:d2 {:
     RESULT = new ExpList(s, null);
 :}; // TODO: Error 
 
-
+declaration                     ::= var_declaration:d {:
+    RESULT = d;
+:} | fun_declaration:d {:
+    RESULT = d;
+:} | fun_prototype:p {:
+    RESULT = p;
+:};
