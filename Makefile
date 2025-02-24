@@ -5,6 +5,8 @@ JFLEX=jflex
 CLASSPATH=-cp /usr/share/java/cup.jar:.
 CUP=$(JAVA) $(CLASSPATH) java_cup.Main
 
+# TODO: cleanup
+
 SRC=src
 
 MAIN_SRC=$(SRC)/Main.java
@@ -13,7 +15,7 @@ MAIN_OUT=$(SRC)/Main.class
 PARSER_DIR=$(SRC)/parser
 PARSER_SRC=$(PARSER_DIR)/*.cup
 PARSER_OUT=$(PARSER_DIR)/Parser
-SYMBOL_OUT=$(PARSER_DIR)/Symbol
+SYMBOL_OUT=$(SCANNER_DIR)/Symbol
 
 ABSYN_DIR = $(PARSER_DIR)/absyn
 ABSYN_SRC = $(ABSYN_DIR)/*.java
