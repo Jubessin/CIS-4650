@@ -51,130 +51,130 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 %%
    
 "if" {
-    return newSymbol(sym.IF); 
+    return newSymbol(Symbol.IF); 
 }
 
 "int" { 
-    return newSymbol(sym.INT); 
+    return newSymbol(Symbol.INT); 
 }
 
 "bool" { 
-    return newSymbol(sym.BOOL); 
+    return newSymbol(Symbol.BOOL); 
 }
 
 "void" { 
-    return newSymbol(sym.VOID); 
+    return newSymbol(Symbol.VOID); 
 }
 
 "else" { 
-    return newSymbol(sym.ELSE); 
+    return newSymbol(Symbol.ELSE); 
 }
 
 "while" { 
-    return newSymbol(sym.WHILE); 
+    return newSymbol(Symbol.WHILE); 
 }
 
 "return" { 
-    return newSymbol(sym.RETURN); 
+    return newSymbol(Symbol.RETURN); 
 }
 
 "||" {
-    return newSymbol(sym.OR);
+    return newSymbol(Symbol.OR);
 }
 
 "&&" {
-    return newSymbol(sym.AND);
+    return newSymbol(Symbol.AND);
 }
 
 "==" { 
-    return newSymbol(sym.EQUAL); 
+    return newSymbol(Symbol.EQUAL); 
 }
 
 "!=" {
-    return newSymbol(sym.NOT_EQUAL);
+    return newSymbol(Symbol.NOT_EQUAL);
 }
 
 "<=" {
-    return newSymbol(sym.LESS_THAN_OR_EQUAL);
+    return newSymbol(Symbol.LESS_THAN_OR_EQUAL);
 }
 
 ">=" {
-    return newSymbol(sym.GREATER_THAN_OR_EQUAL);
+    return newSymbol(Symbol.GREATER_THAN_OR_EQUAL);
 }
 
 "," {
-    return newSymbol(sym.COMMA);
+    return newSymbol(Symbol.COMMA);
 }
 "~" {
-    return newSymbol(sym.UNARY);
+    return newSymbol(Symbol.UNARY);
 }
 
 "=" { 
-    return newSymbol(sym.ASSIGN); 
+    return newSymbol(Symbol.ASSIGN); 
 }
 
 "<" { 
-    return newSymbol(sym.LESS_THAN); 
+    return newSymbol(Symbol.LESS_THAN); 
 }
 
 ">" { 
-    return newSymbol(sym.GREATER_THAN); 
+    return newSymbol(Symbol.GREATER_THAN); 
 }
 
 "+" { 
-    return newSymbol(sym.PLUS); 
+    return newSymbol(Symbol.PLUS); 
 }
 
 "-" { 
-    return newSymbol(sym.MINUS); 
+    return newSymbol(Symbol.MINUS); 
 }
 
 "*" { 
-    return newSymbol(sym.MULTIPLY); 
+    return newSymbol(Symbol.MULTIPLY); 
 }
 
 "/" { 
-    return newSymbol(sym.DIVIDE); 
+    return newSymbol(Symbol.DIVIDE); 
 }
 
 "(" { 
-    return newSymbol(sym.LEFT_PARENTHESES); 
+    return newSymbol(Symbol.LEFT_PARENTHESES); 
 }
 
 ")" { 
-    return newSymbol(sym.RIGHT_PARENTHESES); 
+    return newSymbol(Symbol.RIGHT_PARENTHESES); 
 }
 
 "{" {
-    return newSymbol(sym.LEFT_ANGLE_BRACKET);
+    return newSymbol(Symbol.LEFT_ANGLE_BRACKET);
 }
 
 "}" {
-    return newSymbol(sym.RIGHT_ANGLE_BRACKET);
+    return newSymbol(Symbol.RIGHT_ANGLE_BRACKET);
 }
 
 "[" {
-    return newSymbol(sym.LEFT_SQUARE_BRACKET);
+    return newSymbol(Symbol.LEFT_SQUARE_BRACKET);
 }
 
 "]" {
-    return newSymbol(sym.RIGHT_SQUARE_BRACKET);
+    return newSymbol(Symbol.RIGHT_SQUARE_BRACKET);
 }
 
 ";" { 
-    return newSymbol(sym.SEMICOLON); 
+    return newSymbol(Symbol.SEMICOLON); 
 }
 
 {NUMBER} { 
-    return newSymbol(sym.NUM, yytext()); 
+    return newSymbol(Symbol.NUM, yytext()); 
 }
 
 {TRUTH} { 
-    return newSymbol(sym.TRUTH, yytext()); 
+    return newSymbol(Symbol.TRUTH, yytext()); 
 }
 
 {ID} { 
-    return newSymbol(sym.ID, yytext()); 
+    return newSymbol(Symbol.ID, yytext()); 
 }
 
 // Skip all whitespace. 
@@ -185,5 +185,5 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 
 // Matches all unmatched input.
 . { 
-    return newSymbol(sym.ERROR); 
+    return newSymbol(Symbol.ERROR); 
 }
