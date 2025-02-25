@@ -1,9 +1,8 @@
 package absyn;
 
 public abstract class Var extends Absyn {
-    public int pos;
-
-    public Var(int pos) {
-        this.pos = pos;    
+    public Var(int row, int col) {
+        this.row = row;
+        this.col = col;    
     }
 }
