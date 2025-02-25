@@ -1,0 +1,67 @@
+/*
+* File Name: cm.cup
+* TODO: File description
+*/
+
+import absyn.*;
+
+
+terminal IF, WHILE, BOOL, INT, VOID, COMMA, SEMI, RETURN;
+terminal LEFT_PARENTHESES, RIGHT_PARENTHESES, LEFT_CURLY_BRACKET, RIGHT_CURLY_BRACKET, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET;
+terminal MULTIPLY, PLUS, MINUS, DIVIDE;
+terminal AND, EQ, OR, ELSE, TRUTH, LT, GT, LE, GE, NE, UNARY, ASSIGN;
+terminal String ID, NUM;
+terminal ERROR;
+
+non terminal DecList program, declaration_list;
+non terminal Dec declaration, var_declaration, fun_declaration; 
+non terminal NameTy type_specifier;
+
+start with program;
+
+program                         ::= declaration_list:d {:
+                                    RESULT = d;
+                                    System.out.println("Completed program");
+                                :};
+
+declaration_list                ::= declaration_list:d1 declaration:d2 {:
+                                    System.out.println("declaration list");
+                                    var t = d1;
+
+                                    while (t.tail != null) {
+                                        t = t.tail;
+                                    }
+                                    t.tail = new DecList(d2, null);
+                                    RESULT = d1;
+                                :}
+                                | declaration:d {:
+                                    System.out.println("declaration");
+                                    RESULT = new DecList(d, null);
+                                :};
+
+declaration                     ::= var_declaration:v {:
+                                    RESULT = v;
+                                :};
+
+var_declaration                 ::= type_specifier:d ID:i SEMI {:
+                                    System.out.println("simple declaration");
+                                    RESULT = new SimpleDec(dleft, dright, d, i);
+                                :}
+                                | type_specifier:d ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI {:
+                                    System.out.println("array declaration");
+                                    int num = Integer.parseInt(n);
+                                    RESULT = new ArrayDec(dleft, dright, d, i, num);
+                                :};
+
+type_specifier                  ::= BOOL:b {:
+                                    System.out.println("bool");
+                                    RESULT = new NameTy(bleft, bright, NameTy.Bool);
+                                :}
+                                | INT:i {:
+                                    System.out.println("int");
+                                    RESULT = new NameTy(ileft, iright, NameTy.Int);
+                                :}
+                                | VOID: v {:
+                                    System.out.println("void");
+                                    RESULT = new NameTy(vleft, vright, NameTy.Void);
+                                :};

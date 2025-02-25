@@ -1,4 +1,5 @@
 Extras
+PDFs
 *.class
 Lexer.java*
 Parser.java
