@@ -4,6 +4,7 @@ public interface AbsynVisitor {
     public void visit(Dec dec, int level);
     public void visit(SimpleDec dec, int level);
 
+    public void visit(IfExp exp, int level);
     public void visit(OpExp exp, int level);
     public void visit(IntExp exp, int level);
     public void visit(NilExp exp, int level);
@@ -17,7 +18,7 @@ public interface AbsynVisitor {
     public void visit(DecList list, int level);
     public void visit(ExpList list, int level);
     public void visit(VarDecList list, int level);
-    
+
     public void visit(IndexVar var, int level);
     public void visit(SimpleVar var, int level);
 }
