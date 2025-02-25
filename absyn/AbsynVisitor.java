@@ -10,6 +10,7 @@ public interface AbsynVisitor {
     public void visit(NilExp exp, int level);
     public void visit(VarExp exp, int level);
     public void visit(BoolExp exp, int level);
+    public void visit(WhileExp exp, int level);
     public void visit(AssignExp exp, int level);
     public void visit(FunctionDec exp, int level);
 
