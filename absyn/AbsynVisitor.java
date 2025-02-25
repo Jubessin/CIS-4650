@@ -8,6 +8,9 @@ public interface AbsynVisitor {
     public void visit(BoolExp exp, int level);
     public void visit(DecList exp, int level);
     public void visit(SimpleDec exp, int level);
-    public void visit(IndexVar _var, int level);
-    public void visit(SimpleVar _var, int level);
+    
+    public void visit(IndexVar var, int level);
+    public void visit(SimpleVar var, int level);
+
+    public void visit(ExpList list, int level);
 }
