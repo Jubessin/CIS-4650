@@ -14,54 +14,127 @@ terminal String ID, NUM;
 terminal ERROR;
 
 non terminal DecList program, declaration_list;
-non terminal Dec declaration, var_declaration, fun_declaration; 
+non terminal Dec declaration; 
+non terminal VarDec var_declaration;
+non terminal FunctionDec fun_declaration, fun_prototype;
 non terminal NameTy type_specifier;
+non terminal VarDec param;
+non terminal VarDecList params, param_list;
 
 start with program;
 
-program                         ::= declaration_list:d {:
-                                    RESULT = d;
-                                    System.out.println("Completed program");
-                                :};
+program                         ::= declaration_list:d
+                                    {:
+                                        System.out.println("Completed program");
+                                        RESULT = d;
+                                    :};
 
-declaration_list                ::= declaration_list:d1 declaration:d2 {:
-                                    System.out.println("declaration list");
-                                    var t = d1;
+declaration_list                ::= declaration_list:d1 declaration:d2
+                                    {:
+                                        System.out.println("declaration list");
+                                        var t = d1;
 
-                                    while (t.tail != null) {
-                                        t = t.tail;
-                                    }
-                                    t.tail = new DecList(d2, null);
-                                    RESULT = d1;
-                                :}
-                                | declaration:d {:
-                                    System.out.println("declaration");
-                                    RESULT = new DecList(d, null);
-                                :};
+                                        while (t.tail != null) {
+                                            t = t.tail;
+                                        }
+                                        t.tail = new DecList(d2, null);
+                                        RESULT = d1;
+                                    :}
+                                | declaration:d
+                                    {:
+                                        System.out.println("declaration");
+                                        RESULT = new DecList(d, null);
+                                    :};
 
-declaration                     ::= var_declaration:v {:
-                                    RESULT = v;
-                                :};
+declaration                     ::= var_declaration:v 
+                                    {:
+                                        RESULT = v;
+                                    :}
+                                | fun_prototype:fp
+                                    {:
+                                        System.out.println("function prototype");
+                                        RESULT = fp;
+                                    :};
 
-var_declaration                 ::= type_specifier:d ID:i SEMI {:
-                                    System.out.println("simple declaration");
-                                    RESULT = new SimpleDec(dleft, dright, d, i);
-                                :}
-                                | type_specifier:d ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI {:
-                                    System.out.println("array declaration");
-                                    int num = Integer.parseInt(n);
-                                    RESULT = new ArrayDec(dleft, dright, d, i, num);
-                                :};
+var_declaration                 ::= type_specifier:t ID:i SEMI
+                                    {:
+                                        System.out.println("simple declaration");
+                                        RESULT = new SimpleDec(tleft, tright, t, i);
+                                    :}
+                                | type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        System.out.println("array declaration");
+                                        int num = Integer.valueOf(n);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :};
 
-type_specifier                  ::= BOOL:b {:
-                                    System.out.println("bool");
-                                    RESULT = new NameTy(bleft, bright, NameTy.Bool);
-                                :}
-                                | INT:i {:
-                                    System.out.println("int");
-                                    RESULT = new NameTy(ileft, iright, NameTy.Int);
-                                :}
-                                | VOID: v {:
-                                    System.out.println("void");
-                                    RESULT = new NameTy(vleft, vright, NameTy.Void);
-                                :};
+type_specifier                  ::= BOOL:b
+                                    {:
+                                        System.out.println("bool");
+                                        RESULT = new NameTy(bleft, bright, NameTy.Bool);
+                                    :}
+                                | INT:i
+                                    {:
+                                        System.out.println("int");
+                                        RESULT = new NameTy(ileft, iright, NameTy.Int);
+                                    :}
+                                | VOID: v
+                                    {:
+                                        System.out.println("void");
+                                        RESULT = new NameTy(vleft, vright, NameTy.Void);
+                                    :};
+
+// fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES compound_stmt:c
+//                                    {:
+//                                        System.out.println("function declaration");
+//                                        RESULT = new FunctionDec(tleft, tright, t, i, p, c);
+//                                    :};
+
+fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES SEMI
+                                    {:
+                                        System.out.println("function declaration");
+                                        // I'm not sure why we need to pass a position for
+                                        // NilExp, but I pass the position of the closest neighbour
+                                        RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(pleft, pright));
+                                    :};
+
+params                          ::= param_list:pl
+                                    {:
+                                        System.out.println("params");
+                                        RESULT = pl;
+                                    :}
+                                | VOID
+                                    {:
+                                        System.out.println("void params");
+                                        RESULT = null;
+                                    :};
+
+param_list                      ::= param_list:pl COMMA param:p
+                                    {:
+                                        System.out.println("params");
+                                        var t = pl;
+
+                                        while (t.tail != null) {
+                                            t = t.tail;
+                                        }
+                                        t.tail = new VarDecList(p, null);
+                                        RESULT = pl;
+                                    :}
+                                | param:p
+                                    {:
+                                        System.out.println("void params");
+                                        RESULT = new VarDecList(p, null);
+                                    :};
+
+param                           ::= type_specifier:t ID:i SEMI
+                                    {:
+                                        System.out.println("simple declaration");
+                                        RESULT = new SimpleDec(tleft, tright, t, i);
+                                    :}
+                                | type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        System.out.println("array declaration");
+                                        int num = Integer.valueOf(n);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :};
+
