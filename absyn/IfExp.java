@@ -9,7 +9,7 @@ public class IfExp extends Exp {
         super(row, col);
         this.test = test;
         this.body = body;
-        this.else = _else;
+        this._else = _else;
     }
 
     public void accept(AbsynVisitor visitor, int level) {
