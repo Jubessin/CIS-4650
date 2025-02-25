@@ -3,8 +3,8 @@ package absyn;
 public class IntExp extends Exp {
     public int value;
 
-    public IntExp(int pos, int value) {
-        super(pos);
+    public IntExp(int row, int col, int value) {
+        super(row, col);
         this.value = value;
     }
 

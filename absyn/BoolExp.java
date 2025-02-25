@@ -3,8 +3,8 @@ package absyn;
 public class BoolExp extends Exp {
     boolean value;
 
-    public BoolExp(int pos, boolean value) {
-        super(pos);
+    public BoolExp(int row, int col, boolean value) {
+        super(row, col);
         this.value = value;
     }
 

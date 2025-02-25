@@ -1,9 +1,8 @@
 package absyn;
 
 public abstract class Exp extends Absyn {
-    public int pos;
-
-    public Exp(int pos) {
-        this.pos = pos;
+    public Exp(int row, int col) {
+        this.row = row;
+        this.col = col;
     }
 }
