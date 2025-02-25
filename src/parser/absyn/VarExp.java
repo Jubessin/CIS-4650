@@ -1,9 +1,9 @@
 package absyn;
 
-public class BoolExp extends Exp {
+public class VarExp extends Exp {
     private boolean value;
 
-    public BoolExp(int row, int col, boolean value) {
+    public VarExp(int row, int col, boolean value) {
         this.row = row;
         this.col = col;
         this.value = value;

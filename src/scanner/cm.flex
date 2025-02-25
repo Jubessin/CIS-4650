@@ -162,7 +162,7 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 }
 
 ";" { 
-    return newSymbol(Symbol.SEMICOLON); 
+    return newSymbol(sym.SEMI); 
 }
 
 {NUMBER} { 
