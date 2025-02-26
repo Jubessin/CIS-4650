@@ -186,5 +186,5 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 
 // Matches all unmatched input.
 . { 
-    return symbol(sym.ERROR); 
+    System.out.println("ERROR");
 }

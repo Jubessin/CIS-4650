@@ -15,6 +15,7 @@ public interface AbsynVisitor {
     public void visit(AssignExp exp, int level);
     public void visit(ReturnExp exp, int level);
     public void visit(CompoundExp exp, int level);
+    public void visit(CallExp exp, int level);
 
     public void visit(NameTy type, int level);
 

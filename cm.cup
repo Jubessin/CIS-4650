@@ -9,9 +9,8 @@ import absyn.*;
 terminal IF, WHILE, BOOL, INT, VOID, COMMA, SEMI, RETURN;
 terminal LEFT_PARENTHESES, RIGHT_PARENTHESES, LEFT_CURLY_BRACKET, RIGHT_CURLY_BRACKET, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET;
 terminal MULTIPLY, PLUS, MINUS, DIVIDE;
-terminal AND, EQ, OR, ELSE, TRUTH, LT, GT, LE, GE, NE, UNARY, ASSIGN;
-terminal String ID, NUM;
-terminal ERROR;
+terminal AND, EQ, OR, ELSE, LT, GT, LE, GE, NE, UNARY, ASSIGN;
+terminal String ID, NUM, TRUTH;
 
 non terminal NameTy type_specifier;
 non terminal DecList program, declaration_list;
@@ -19,12 +18,12 @@ non terminal FunctionDec fun_declaration, fun_prototype;
 non terminal Dec declaration; 
 non terminal VarDec var_declaration, param;
 non terminal VarDecList params, param_list, local_declarations;
-non terminal Exp statement, expression_stmt, expression, obool_expression. abool_expression, ubool_expression, simple_expression, additive_expression, term;
+non terminal Exp statement, expression_stmt, expression, obool_expression, abool_expression, ubool_expression, simple_expression, additive_expression, term, signed_factor, factor, call;
 non terminal IfExp selection_stmt;
 non terminal WhileExp iteration_stmt;
 non terminal ReturnExp return_stmt;
-nom terminal CompoundExp compound_stmt;
-non terminal ExpList statement_list;
+non terminal CompoundExp compound_stmt;
+non terminal ExpList statement_list, args, arg_list;
 non terminal Var var;
 non terminal Integer addop, mulop, relop;
 
@@ -94,13 +93,13 @@ type_specifier                  ::= BOOL:b
                                         RESULT = new NameTy(vleft, vright, NameTy.Void);
                                     :};
 
-fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES compound_stmt:c
+fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES compound_stmt:c
                                    {:
                                        System.out.println("function declaration");
                                        RESULT = new FunctionDec(tleft, tright, t, i, p, c);
                                    :};
 
-fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES SEMI
+fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
                                     {:
                                         System.out.println("function declaration");
                                         // I'm not sure why we need to pass a position for
@@ -110,7 +109,7 @@ fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES  para
 
 params                          ::= param_list:pl
                                     {:
-                                        System.out.println("params");
+                                        System.out.println("total list of params");
                                         RESULT = pl;
                                     :}
                                 |   VOID
@@ -131,19 +130,18 @@ param_list                      ::= param_list:pl COMMA param:p
                                     :}
                                 |   param:p
                                     {:
-                                        System.out.println("void params");
+                                        System.out.println("initialized param list");
                                         RESULT = new VarDecList(p, null);
                                     :};
 
-param                           ::= type_specifier:t ID:i SEMI
+param                           ::= type_specifier:t ID:i
                                     {:
                                         System.out.println("simple declaration");
                                         RESULT = new SimpleDec(tleft, tright, t, i);
                                     :}
-                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET SEMI
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
                                     {:
                                         System.out.println("array declaration");
-                                        int num = Integer.valueOf(n);
                                         RESULT = new ArrayDec(tleft, tright, t, i, 0);
                                     :};
 
@@ -156,7 +154,7 @@ local_declarations              ::= local_declarations:ld var_declaration:vd
                                     {:
                                         System.out.println("local declarations");
                                         if (ld.head == null) {
-                                            ld.head = s;
+                                            ld.head = vd;
                                         } else {
                                             var t = ld;
                                             while (t.tail != null) {
@@ -173,8 +171,6 @@ local_declarations              ::= local_declarations:ld var_declaration:vd
 
 statement_list                  ::= statement_list:sl statement:s
                                     {:
-                                        System.out.println("statement list declaration");
-
                                         if (sl.head == null) {
                                             sl.head = s;
                                         } else {
@@ -188,27 +184,34 @@ statement_list                  ::= statement_list:sl statement:s
                                     :}
                                 |
                                     {:
+                                        System.out.println("created statement list");
+
                                         RESULT = new ExpList(null, null);
                                     :};
 
 statement                       ::= expression_stmt:es
                                     {:
+                                        System.out.println("expression statement");
                                         RESULT = es;
                                     :}
                                 |   compound_stmt:cs
                                     {:
+                                        System.out.println("compound statement");
                                         RESULT = cs;
                                     :}
                                 |   selection_stmt:ss
                                     {:
+                                        System.out.println("if statement");
                                         RESULT = ss;
                                     :}
                                 |   iteration_stmt:is
                                     {:
+                                        System.out.println("iteration/while statement");
                                         RESULT = is;
                                     :}
                                 |   return_stmt:rs
                                     {:
+                                        System.out.println("return statement");
                                         RESULT = rs;
                                     :};
 
@@ -241,12 +244,13 @@ return_stmt                  ::= RETURN expression:e SEMI
                                     :}
                                 |   RETURN:r SEMI
                                     {:
-                                        RESULT = new ReturnExp(eleft, eright, new NilExp(rleft, rright));
+                                        RESULT = new ReturnExp(rleft, rright, new NilExp(rleft, rright));
                                     :};
 
-expression                      ::= var:v EQ expression:e
+expression                      ::= var:v ASSIGN expression:e
                                     {:
-                                        RESULT = new AssignExp(vleft, vright, v, e);
+                                        VarExp varExp = new VarExp(vleft, vright, v);
+                                        RESULT = new AssignExp(vleft, vright, varExp, e);
                                     :}
                                 |   obool_expression:obe
                                     {:
@@ -291,11 +295,36 @@ ubool_expression                ::= UNARY ubool_expression:ube
 
 simple_expression               ::= additive_expression:ae relop:ro additive_expression:ae2
                                     {:
-                                        RESULT = new OpExp(aeleft, aeright, ae, r, ae2);
+                                        RESULT = new OpExp(aeleft, aeright, ae, ro, ae2);
                                     :}
                                 |   additive_expression:ae
                                     {:
                                         RESULT = ae;
+                                    :};
+
+relop                           ::= LE
+                                    {:
+                                        RESULT = OpExp.LE;
+                                    :}
+                                |   LT
+                                    {:
+                                        RESULT = OpExp.LT;
+                                    :}
+                                |   GT
+                                    {:
+                                        RESULT = OpExp.GT;
+                                    :}
+                                |   GE
+                                    {:
+                                        RESULT = OpExp.GE;
+                                    :}
+                                |   EQ
+                                    {:
+                                        RESULT = OpExp.EQ;
+                                    :}
+                                |   NE
+                                    {:
+                                        RESULT = OpExp.NE;
                                     :};
 
 additive_expression             ::= additive_expression:ae addop:ao term:t
@@ -305,4 +334,93 @@ additive_expression             ::= additive_expression:ae addop:ao term:t
                                 |   term:t
                                     {:
                                         RESULT = t;
+                                    :};
+
+addop                           ::= PLUS
+                                    {:
+                                        RESULT = OpExp.PLUS;
+                                    :}
+                                |   MINUS
+                                    {:
+                                        RESULT = OpExp.MINUS;
+                                    :};
+
+term                            ::= term:t mulop:m signed_factor:sf
+                                    {:
+                                        RESULT = new OpExp(tleft, tright, t, m, sf);
+                                    :}
+                                |   signed_factor:sf
+                                    {:
+                                        RESULT = sf;
+                                    :};
+
+mulop                           ::= MULTIPLY
+                                    {:
+                                        RESULT = OpExp.MULTIPLY;
+                                    :}
+                                |   DIVIDE
+                                    {:
+                                        RESULT = OpExp.DIVIDE;
+                                    :};
+
+signed_factor                   ::= MINUS:m signed_factor:sf
+                                    {:
+                                        // NIL exp is used since there is no expression on the left hand side
+                                        RESULT = new OpExp(mleft, mright, new NilExp(mleft, mright) , OpExp.MINUS, sf);
+                                    :}
+                                |   factor:f
+                                    {:
+                                        RESULT = f;
+                                    :};
+
+factor                          ::= LEFT_PARENTHESES expression:e RIGHT_PARENTHESES
+                                    {:
+                                        RESULT = e;
+                                    :}
+                                |   var:v
+                                    {:
+                                        VarExp varExp = new VarExp(vleft, vright, v);
+                                        RESULT = varExp;
+                                    :}
+                                |   call:c
+                                    {:
+                                        RESULT = c;
+                                    :}
+                                |   NUM:n
+                                    {:
+                                        int num = Integer.valueOf(n);
+                                        RESULT = new IntExp(nleft, nright, num);
+                                    :}
+                                |   TRUTH:t
+                                    {:
+                                        boolean value = Boolean.parseBoolean(t);
+                                        RESULT = new BoolExp(tleft, tright, value);
+                                    :};
+
+call                            ::= ID:i LEFT_PARENTHESES args:a RIGHT_PARENTHESES
+                                    {:
+                                        RESULT = new CallExp(ileft, iright, i, a);
+                                    :};
+
+args                            ::= arg_list:a
+                                    {:
+                                        RESULT = a;
+                                    :}
+                                |
+                                    {:
+                                        RESULT = null;
+                                    :};
+
+arg_list                        ::= arg_list:a COMMA expression:e
+                                    {:
+                                        var t = a;
+                                        while (t.tail != null) {
+                                            t = t.tail;
+                                        }
+                                        t.tail = new ExpList(e, null);
+                                        RESULT = a;
+                                    :}
+                                |   expression:e
+                                    {:
+                                        RESULT = new ExpList(e, null);
                                     :};

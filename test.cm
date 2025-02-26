@@ -1,3 +1,11 @@
-bool adssa;
-int as;
-int as[1];
+void main(int a, int b) {
+    int x;
+    int fac;
+    x = input();
+    fac = 1;
+    while (x > 1) {
+        fac = fac * x;
+        x = x - 1;
+    }
+    output(fac);
+}
