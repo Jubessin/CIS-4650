@@ -1,2 +1,3 @@
-int adssa(void);
-void asd(void);
+bool adssa;
+int as;
+int as[1];
