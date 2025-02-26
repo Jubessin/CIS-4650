@@ -13,13 +13,15 @@ terminal AND, EQ, OR, ELSE, TRUTH, LT, GT, LE, GE, NE, UNARY, ASSIGN;
 terminal String ID, NUM;
 terminal ERROR;
 
-non terminal DecList program, declaration_list;
-non terminal Dec declaration; 
-non terminal VarDec var_declaration;
-non terminal FunctionDec fun_declaration, fun_prototype;
 non terminal NameTy type_specifier;
-non terminal VarDec param;
-non terminal VarDecList params, param_list;
+non terminal DecList program, declaration_list;
+non terminal FunctionDec fun_declaration, fun_prototype;
+non terminal Dec declaration; 
+non terminal VarDec var_declaration, param;
+non terminal VarDecList params, param_list, local_declarations;
+non terminal Exp statement, expression_stmt;
+non terminal ExpList statement_list;
+nom terminal CompoundExp compound_stmt;
 
 start with program;
 
@@ -84,11 +86,11 @@ type_specifier                  ::= BOOL:b
                                         RESULT = new NameTy(vleft, vright, NameTy.Void);
                                     :};
 
-// fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES compound_stmt:c
-//                                    {:
-//                                        System.out.println("function declaration");
-//                                        RESULT = new FunctionDec(tleft, tright, t, i, p, c);
-//                                    :};
+fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES compound_stmt:c
+                                   {:
+                                       System.out.println("function declaration");
+                                       RESULT = new FunctionDec(tleft, tright, t, i, p, c);
+                                   :};
 
 fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES  params:p RIGHT_PARENTHESES SEMI
                                     {:
@@ -131,10 +133,73 @@ param                           ::= type_specifier:t ID:i SEMI
                                         System.out.println("simple declaration");
                                         RESULT = new SimpleDec(tleft, tright, t, i);
                                     :}
-                                | type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                | type_specifier:t ID:i LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET SEMI
                                     {:
                                         System.out.println("array declaration");
                                         int num = Integer.valueOf(n);
-                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :};
+
+compound_stmt                   ::= LEFT_CURLY_BRACKET local_declarations:ld statement_list:sl RIGHT_CURLY_BRACKET
+                                    {:
+                                        RESULT = new CompoundExp(ldleft, ldright, ld, sl);
+                                    :};
+
+local_declarations              ::= local_declarations:ld var_declaration:vd
+                                    {:
+                                        System.out.println("local declarations");
+                                        if (ld.head == null) {
+                                            ld.head = s;
+                                        } else {
+                                            var t = ld;
+                                            while (t.tail != null) {
+                                                t = t.tail;
+                                            }
+                                            t.tail = new VarDecList(vd, null);
+                                        }
+                                        RESULT = ld;
+                                    :}
+                                |
+                                    {:
+                                        RESULT = new VarDecList(null, null);
+                                    :};
+
+statement_list                  ::= statement_list:sl statement:s
+                                    {:
+                                        System.out.println("statement list declaration");
+
+                                        if (sl.head == null) {
+                                            sl.head = s;
+                                        } else {
+                                            var t = sl;
+                                            while (t.tail != null) {
+                                                t = t.tail;
+                                            }
+                                            t.tail = new ExpList(s, null);
+                                        }
+                                        RESULT = sl;
+                                    :}
+                                |
+                                    {:
+                                        RESULT = new ExpList(null, null);
+                                    :};
+
+statement                       ::= expression_stmt:es
+                                    {:
+
+                                    :};
+
+expression_stmt                 ::= expression:e SEMI
+                                    {:
+
+                                    :}
+                                | SEMI
+                                    {:
+
+                                    :};
+
+expression                      ::= var:v EQ expression:e
+                                    {:
+
                                     :};
 

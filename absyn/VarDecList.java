@@ -1,7 +1,7 @@
 package absyn;
 
 public class VarDecList extends Absyn {
-  public Dec head;
+  public VarDec head;
   public VarDecList tail;
 
   public VarDecList( VarDec head, VarDecList tail ) {

@@ -1,10 +1,10 @@
 package absyn;
 
 public class CompoundExp extends Exp {
-    public ExpList exps;
     public VarDecList decs;
+    public ExpList exps;
 
-    public CompoundExp(int row, int col, ExpList exps, VarDecList decs) {
+    public CompoundExp(int row, int col, VarDecList decs, ExpList exps) {
         super(row, col);
         this.exps = exps;
         this.decs = decs;
