@@ -43,15 +43,25 @@ public class AbsynRenderer implements AbsynVisitor {
 
     public void visit(IfExp exp, int level) {
         indent(level);
-        
         System.out.println("IfExp: ");
 
         ++level;
-        exp.test.accept(this, level);
-        exp.body.accept(this, level);
+
+        indent(level);
+        System.out.println("Test: ");
+
+        exp.test.accept(this, level + 1);
+
+        indent(level);
+        System.out.println("Body: ");
+
+        exp.body.accept(this, level + 1);
 
         if (exp._else != null) {
-            exp._else.accept(this, level);
+            indent(level);
+            System.out.println("Else: ");
+
+            exp._else.accept(this, level + 1);
         }
     }
 
