@@ -14,7 +14,7 @@ public class Main {
     }
 
     private static void renderTree(Absyn tree) {
-        var renderer = new AbsynRenderer();
+        var renderer = new AbsynProcessor();
 
         System.out.println("Abstract syntax tree: ");
         System.out.println();
