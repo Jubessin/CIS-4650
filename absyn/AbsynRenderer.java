@@ -16,7 +16,15 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(FunctionDec dec, int level) {
+        indent(level);
 
+        System.out.println("FunctionDec: " + dec.name);
+
+        ++level;
+        
+        dec.type.accept(this, level);
+        dec.params.accept(this, level);
+        dec.body.accept(this, level);
     }
 
     public void visit(IfExp exp, int level) {
