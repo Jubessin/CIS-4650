@@ -4,8 +4,8 @@ public class NameTy extends Absyn {
     public static final int Bool = 1;
     public static final int Int = 2;
     public static final int Void = 3;
-    public int type;
 
+    public int type;
 
     public NameTy(int row, int col, int type) {
         this.row = row;
