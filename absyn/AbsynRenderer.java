@@ -4,7 +4,7 @@ public class AbsynRenderer implements AbsynVisitor {
     private static final int INDENT = 4;
     
     private static void indent(int level) {
-
+        System.out.print(" ".repeat(level * INDENT));
     }
     
     public void visit(Dec dec, int level) {
@@ -24,7 +24,35 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(OpExp exp, int level) {
+        indent(level);
+        
+        System.out.print("OpExp");
 
+        switch (exp.op) {
+            case OpExp.LT: System.out.print(" < "); break;
+            case OpExp.GT: System.out.print(" > "); break;
+            case OpExp.EQ: System.out.print(" == "); break;
+            case OpExp.NE: System.out.print(" != "); break;
+            case OpExp.LE: System.out.print(" <= "); break;
+            case OpExp.GE: System.out.print(" >= "); break;
+            case OpExp.OR: System.out.print(" || "); break;
+            case OpExp.AND: System.out.print(" && "); break;
+            case OpExp.PLUS: System.out.println(" + "); break;
+            case OpExp.DIVIDE: System.out.print(" / "); break;
+            case OpExp.MINUS: System.out.println(" - "); break;
+            case OpExp.MULTIPLY: System.out.print(" * "); break;
+            default: System.out.println( "Unrecognized operator at line " + exp.row + " and column " + exp.col); break;
+        }
+
+        level++;
+
+        if (exp.left != null) {
+            exp.left.accept(this, level);
+        }
+
+        if (exp.right != null) {
+            exp.right.accept(this, level);
+        }
     }
 
     public void visit(IntExp exp, int level) {
