@@ -101,7 +101,13 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(CallExp exp, int level) {
+        indent(level);
 
+        System.out.println("CallExp: " + exp.func);
+
+        if (exp.args != null) {
+            exp.args.accept(this, ++level);
+        }
     }
 
     public void visit(NameTy type, int level) {
