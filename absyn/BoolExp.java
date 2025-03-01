@@ -1,7 +1,7 @@
 package absyn;
 
 public class BoolExp extends Exp {
-    boolean value;
+    public boolean value;
 
     public BoolExp(int row, int col, boolean value) {
         super(row, col);
