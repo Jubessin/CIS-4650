@@ -20,7 +20,17 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(IfExp exp, int level) {
+        indent(level);
+        
+        System.out.println("IfExp: ");
 
+        ++level;
+        exp.test.accept(this, level);
+        exp.body.accept(this, level);
+
+        if (exp._else != null) {
+            exp._else.accept(this, level);
+        }
     }
 
     public void visit(OpExp exp, int level) {
