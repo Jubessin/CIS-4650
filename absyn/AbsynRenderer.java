@@ -6,7 +6,7 @@ public class AbsynRenderer implements AbsynVisitor {
     private static void indent(int level) {
         System.out.print(" ".repeat(level * INDENT));
     }
-    
+
     public void visit(Dec dec, int level) {
         indent(level);
         
@@ -103,7 +103,8 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(NilExp exp, int level) {
-
+        indent(level);
+        System.out.println("NilExp");
     }
 
     public void visit(VarExp exp, int level) {
