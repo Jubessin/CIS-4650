@@ -108,8 +108,16 @@ public class AbsynRenderer implements AbsynVisitor {
 
     }
 
-    public void visit(IndexVar var, int level) {
+    public void visit(IndexVar _var, int level) {
+        indent(level);
 
+        System.out.println("IndexVar: " + _var.name);
+
+        level++;
+
+        if (_var.exp != null) {
+            _var.exp.accept(this, level);
+        }
     }
 
     public void visit(SimpleVar _var, int level) {
