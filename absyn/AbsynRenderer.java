@@ -129,7 +129,16 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(NameTy type, int level) {
+        indent(level);
 
+        System.out.print("NameTy: ");
+
+        switch (type.type) {
+            case NameTy.Void: System.out.println("Void"); break;
+            case NameTy.Int: System.out.println("Integer"); break;
+            case NameTy.Bool: System.out.println("Boolean"); break;
+            default: System.err.println("Unknown type at line " + type.row + ", column " + type.col); break;
+        }
     }
 
     public void visit(DecList list, int level) {
