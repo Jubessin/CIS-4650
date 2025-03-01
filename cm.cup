@@ -70,10 +70,45 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                         System.out.println("simple declaration");
                                         RESULT = new SimpleDec(tleft, tright, t, i);
                                     :}
+                                |   type_specifier:t error:e SEMI
+                                    {:
+                                        parser.report_error("Invalid variable declaration ", e, eleft, eright);
+                                        RESULT = new SimpleDec(tleft, tright, t, "");
+                                    :}
+                                |   type_specifier:t ID:i error:e
+                                    {:
+                                        parser.report_error("Expected semi colon ", e, eleft, eright);
+                                        RESULT = new SimpleDec(tleft, tright, t, i);
+                                    :}
                                 |   type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
                                     {:
                                         System.out.println("array declaration");
                                         int num = Integer.valueOf(n);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :}
+                                |   type_specifier:t error:e LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        parser.report_error("Invalid variable name ", e, eleft, eright);
+                                        RESULT = new ArrayDec(tleft, tright, t, "", num);
+                                    :}
+                                |   type_specifier:t ID:i error:e NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        parser.report_error("Expected left square bracket ", e, eleft, eright);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET error:e RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        parser.report_error("Expected num ", e, eleft, eright);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n error:e SEMI
+                                    {:
+                                        parser.report_error("Expected right square bracket ", e, eleft, eright);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET error:e
+                                    {:
+                                        parser.report_error("Expected semi colon ", e, eleft, eright);
                                         RESULT = new ArrayDec(tleft, tright, t, i, num);
                                     :};
 
@@ -87,23 +122,94 @@ type_specifier                  ::= BOOL:b
                                         System.out.println("int");
                                         RESULT = new NameTy(ileft, iright, NameTy.Int);
                                     :}
-                                |   VOID: v
+                                |   VOID:v
                                     {:
                                         System.out.println("void");
                                         RESULT = new NameTy(vleft, vright, NameTy.Void);
                                     :};
 
 fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES compound_stmt:c
-                                   {:
+                                    {:
                                        System.out.println("function declaration");
                                        RESULT = new FunctionDec(tleft, tright, t, i, p, c);
-                                   :};
+                                    :}
+                                |   error:e ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES compound_stmt:c
+                                    {:
+                                       parser.report_error("Invalid function type specified ", e, eleft, eright);
+                                       RESULT = new FunctionDec(eleft, eright, t, i, p, c);
+                                       // Use eleft and eright since there is no tleft and tright
+                                    :}
+                                |   type_specifier:t error:e LEFT_PARENTHESES params:p RIGHT_PARENTHESES compound_stmt:c
+                                    {:
+                                       parser.report_error("Invalid function name specified ", e, eleft, eright);
+                                       RESULT = new FunctionDec(tleft, tright, t, "", p, c);
+                                    :}
+                                |   type_specifier:t ID:i error:e params:p RIGHT_PARENTHESES compound_stmt:c
+                                    {:
+                                       parser.report_error("Expected left bracket ", e, eleft, eright);
+                                       RESULT = new FunctionDec(tleft, tright, t, i, p, c);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_PARENTHESES error:e RIGHT_PARENTHESES compound_stmt:c
+                                    {:
+                                       parser.report_error("Invalid function parameters ", e, eleft, eright);
+                                       RESULT = new FunctionDec(tleft, tright, t, i, null, c);
+                                |   type_specifier:t ID:i LEFT_PARENTHESES ID:i error:e compound_stmt:c
+                                    {:
+                                       parser.report_error("Expected right bracket ", e, eleft, eright);
+                                       RESULT = new FunctionDec(tleft, tright, t, i, p, c);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES error:e
+                                    {:
+                                       parser.report_error("Invalid compound statement ", e, eleft, eright);
+                                       RESULT = new FunctionDec(tleft, tright, t, i, p, null);
+                                       // Not sure if this is necessary, as we travel up the tree from the bottom
+                                       // somethings are guaranteed to exist properly by then assuming we
+                                       // error check them lower in the tree right? Idk I could be wrong
+                                    :};
 
 fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
                                     {:
                                         System.out.println("function declaration");
                                         // I'm not sure why we need to pass a position for
                                         // NilExp, but I pass the position of the closest neighbour
+
+                                        // Gurv: If I had to guess it might have something to do with
+                                        // a later checkpoint, since compilers replace all instaces of a func
+                                        // when converting to machine code or something, so it will just point
+                                        // to the function I guess
+
+                                        RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(pleft, pright));
+                                    :}
+                                |   error:e ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
+                                    {:
+                                        parser.report_error("Invalid function type specified ", e, eleft, eright);
+                                        RESULT = new FunctionDec(eleft, eright, null, i, p, new NilExp(pleft, pright));
+                                        // Use eleft and eright since there's no t
+                                    :}
+                                |   type_specifier:t error:e LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
+                                    {:
+                                        parser.report_error("Invalid function name ", e, eleft, eright);
+                                        RESULT = new FunctionDec(tleft, tright, t, "", p, new NilExp(pleft, pright));
+                                    :}
+                                |   type_specifier:t ID:i error:e params:p RIGHT_PARENTHESES SEMI
+                                    {:
+                                        parser.report_error("Expected left bracket ", e, eleft, eright);
+                                        RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(pleft, pright));
+                                    :}
+                                |   type_specifier:t ID:i LEFT_PARENTHESES error:e RIGHT_PARENTHESES SEMI
+                                    {:
+                                        parser.report_error("Invalid function parameters ", e, eleft, eright);
+                                        RESULT = new FunctionDec(tleft, tright, t, i, null, new NilExp(eleft, eright));
+                                        // Use eleft and eright since there is no p
+                                    :}
+                                |   type_specifier:t ID:i LEFT_PARENTHESES params:p error:e SEMI
+                                    {:
+                                        parser.report_error("Expected right bracket ", e, eleft, eright);
+                                        RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(pleft, pright));
+                                    :}
+                                |   type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES error:e
+                                    {:
+                                        parser.report_error("Expected semi colon ", e, eleft, eright);
                                         RESULT = new FunctionDec(tleft, tright, t, i, p, new NilExp(pleft, pright));
                                     :};
 
