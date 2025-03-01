@@ -65,7 +65,12 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(VarExp exp, int level) {
+        indent(level);
+        System.out.println("VarExp: ");
 
+        if (exp._var != null) {
+            exp._var.accept(this, ++level);
+        }
     }
 
     public void visit(BoolExp exp, int level) {
