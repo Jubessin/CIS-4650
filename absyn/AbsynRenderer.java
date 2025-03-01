@@ -83,7 +83,13 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(AssignExp exp, int level) {
+        indent(level);
+        System.out.println("AssignExp: ");
+        
+        level++;
 
+        exp.left.accept(this, level);
+        exp.right.accept(this, level);
     }
 
     public void visit(ReturnExp exp, int level) {
