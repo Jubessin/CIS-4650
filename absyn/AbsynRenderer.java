@@ -8,7 +8,11 @@ public class AbsynRenderer implements AbsynVisitor {
     }
     
     public void visit(Dec dec, int level) {
+        indent(level);
+        
+        System.out.println("Dec: " + dec.name);
 
+        dec.type.accept(this, ++level);
     }
 
     public void visit(SimpleDec dec, int level) {
