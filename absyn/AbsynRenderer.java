@@ -111,7 +111,8 @@ public class AbsynRenderer implements AbsynVisitor {
 
     }
 
-    public void visit(SimpleVar var, int level) {
-        
+    public void visit(SimpleVar _var, int level) {
+        indent(level);
+        System.out.println("SimpleVar: " + _var.name);
     }
 }
