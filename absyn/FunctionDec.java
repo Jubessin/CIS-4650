@@ -1,8 +1,9 @@
 package absyn;
 
 public class FunctionDec extends Dec {
-    public VarDecList params;
     public Exp body;
+    public VarDecList params;
+    
     public FunctionDec(int row, int col, NameTy type, String name, VarDecList params, Exp body) {
         super(row, col, type, name);
         this.params = params;
