@@ -115,7 +115,10 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(DecList list, int level) {
-
+        while (list != null) {
+            list.head.accept(this, level);
+            list = list.tail;
+        }
     }
 
     public void visit(ExpList list, int level) {
