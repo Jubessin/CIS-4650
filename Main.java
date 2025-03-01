@@ -13,13 +13,13 @@ public class Main {
         return new parser(lexer);
     }
 
-    private static void renderTree(Absyn tree) {
-        var renderer = new AbsynProcessor();
+    private static void processTree(Absyn tree) {
+        var processor = new AbsynProcessor();
 
         System.out.println("Abstract syntax tree: ");
         System.out.println();
 
-        tree.accept(renderer, 0);
+        tree.accept(processor, 0);
     }
 
     public static void main(String argv[]) {
@@ -27,7 +27,7 @@ public class Main {
             var parser = createParser(argv);
             var tree = (Absyn)parser.parse().value;
 
-            renderTree(tree);
+            processTree(tree);
         } catch (Exception e) {
             e.printStackTrace();
         }
