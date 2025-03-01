@@ -56,7 +56,8 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(IntExp exp, int level) {
-
+        indent(level);
+        System.out.println("IntExp:" + exp.value);
     }
 
     public void visit(NilExp exp, int level) {
