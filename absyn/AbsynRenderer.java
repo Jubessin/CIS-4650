@@ -16,7 +16,11 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(SimpleDec dec, int level) {
+        indent(level);
 
+        System.out.println("SimpleDec: " + dec.name);
+
+        dec.type.accept(this, ++level);
     }
 
     public void visit(FunctionDec dec, int level) {
@@ -27,8 +31,14 @@ public class AbsynRenderer implements AbsynVisitor {
         ++level;
         
         dec.type.accept(this, level);
-        dec.params.accept(this, level);
-        dec.body.accept(this, level);
+
+        indent(level);
+        System.out.println("Parameters: ");
+        dec.params.accept(this, level + 1);
+
+        indent(level);
+        System.out.println("Body: ");
+        dec.body.accept(this, level + 1);
     }
 
     public void visit(IfExp exp, int level) {
@@ -119,7 +129,14 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(CompoundExp exp, int level) {
+        indent(level);
 
+        System.out.println("CompoundExp: ");
+
+        level++;
+
+        exp.decs.accept(this, level);
+        exp.exps.accept(this, level);
     }
 
     public void visit(CallExp exp, int level) {
