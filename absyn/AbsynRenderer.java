@@ -129,7 +129,10 @@ public class AbsynRenderer implements AbsynVisitor {
     }
 
     public void visit(VarDecList list, int level) {
-
+        while (list != null) {
+            list.head.accept(this, level);
+            list = list.tail;
+        }
     }
 
     public void visit(IndexVar _var, int level) {
