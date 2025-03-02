@@ -199,10 +199,10 @@ fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES param
                                        parser.report_error("Invalid function parameters ", e);
                                        RESULT = new FunctionDec(tleft, tright, t, i, null, c);
                                     :}
-                                |   type_specifier:t ID:i LEFT_PARENTHESES error:e compound_stmt:c
+                                |   type_specifier:t ID:i LEFT_PARENTHESES params:p error:e compound_stmt:c
                                     {:
                                        parser.report_error("Expected right bracket ", e);
-                                       RESULT = new FunctionDec(tleft, tright, t, i, null, c);
+                                       RESULT = new FunctionDec(tleft, tright, t, i, p, c);
                                     :};
 
 fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
