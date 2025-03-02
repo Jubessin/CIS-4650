@@ -1,18 +1,29 @@
-/* 
-* File Name: 1.cm
-* Tests the C- compiler, and should compile with no errors.
+/*
+*   File Name: 1.cm
+*   TODO: Tests that the CM compiler can handle variable declarations, assignments, functions, while loops successfully.
 */
 
 int _integer;
 bool _boolean;
 
-_integer = 77;
-_boolean = false;
-
-while (_integer < 80) {
-    _integer += 1;
+bool _isPositive(int value) 
+{
+    return value > 0;
 }
 
-_boolean = true;
+void main(void) {
+    _integer = 77;
 
-return _boolean;
+    while (_integer < 80) {
+        _integer = _integer + 1;
+    }
+
+    if (_isPositive()) {
+        _boolean = true;
+    }
+    else {
+        _boolean = false;
+    }
+
+    return;
+}
