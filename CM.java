@@ -1,12 +1,12 @@
 /*
-  File Name: Main.java
+  File Name: CM.java
   Description: TODO
 */
 
 import absyn.*;
 import java.io.*;
 
-public class Main {
+public class CM {
     private static parser createParser(String args[]) throws Exception {
         var reader = new FileReader(args[0]);
         var lexer = new Lexer(reader);

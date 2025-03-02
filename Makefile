@@ -9,9 +9,9 @@ CLASSPATH=-cp /usr/share/java/cup.jar:.
 #CLASSPATH=-cp ~/Projects/java-cup-11b.jar:.
 CUP=$(JAVA) $(CLASSPATH) java_cup.Main
 
-all: Main.class
+all: CM.class
 
-Main.class: absyn/*.java parser.java sym.java Lexer.java Scanner.java Main.java
+CM.class: absyn/*.java parser.java sym.java Lexer.java Scanner.java CM.java
 
 %.class: %.java
 	$(JAVAC) $(CLASSPATH) $^
