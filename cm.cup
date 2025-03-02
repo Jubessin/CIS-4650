@@ -91,11 +91,6 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                         parser.report_error("Invalid variable name ", e, eleft, eright);
                                         RESULT = new ArrayDec(tleft, tright, t, "", num);
                                     :}
-                                |   type_specifier:t ID:i error:e NUM:n RIGHT_SQUARE_BRACKET SEMI
-                                    {:
-                                        parser.report_error("Expected left square bracket ", e, eleft, eright);
-                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
-                                    :}
                                 |   type_specifier:t ID:i LEFT_SQUARE_BRACKET error:e RIGHT_SQUARE_BRACKET SEMI
                                     {:
                                         parser.report_error("Expected num ", e, eleft, eright);
@@ -157,14 +152,6 @@ fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES param
                                     {:
                                        parser.report_error("Expected right bracket ", e, eleft, eright);
                                        RESULT = new FunctionDec(tleft, tright, t, i, p, c);
-                                    :}
-                                |   type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES error:e
-                                    {:
-                                       parser.report_error("Invalid compound statement ", e, eleft, eright);
-                                       RESULT = new FunctionDec(tleft, tright, t, i, p, null);
-                                       // Not sure if this is necessary, as we travel up the tree from the bottom
-                                       // somethings are guaranteed to exist properly by then assuming we
-                                       // error check them lower in the tree right? Idk I could be wrong
                                     :};
 
 fun_prototype                   ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES SEMI
@@ -334,23 +321,48 @@ selection_stmt                  ::= IF LEFT_PARENTHESES expression:e RIGHT_PAREN
                                     {:
                                         RESULT = new IfExp(eleft, eright, e, s, new NilExp(sleft, sright));
                                     :}
+                                |   IF LEFT_PARENTHESES error:e RIGHT_PARENTHESES statement:s
+                                    {:
+                                        parser.report_error("Invalid expression ", e, eleft, eright);
+                                        RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, new NilExp(sleft, sright));
+                                    :}
                                 |   IF LEFT_PARENTHESES expression:e RIGHT_PARENTHESES statement:s ELSE statement:s2
                                     {:
                                         RESULT = new IfExp(eleft, eright, e, s, s2);
+                                    :}
+                                |   IF LEFT_PARENTHESES error:e RIGHT_PARENTHESES statement:s ELSE statement:s2
+                                    {:
+                                        parser.report_error("Invalid expression ", e, eleft, eright);
+                                        RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, s2);
                                     :};
 
 iteration_stmt                  ::= WHILE LEFT_PARENTHESES expression:e RIGHT_PARENTHESES statement:s
                                     {:
                                         RESULT = new WhileExp(eleft, eright, e, s);
+                                    :}
+                                |   WHILE error:err expression:e RIGHT_PARENTHESES statement:s
+                                    {:
+                                        parser.report_error("Expected left bracket ", err, errleft, errright);
+                                        RESULT = new WhileExp(eleft, eright, e, s);
+                                    :}
+                                |   WHILE LEFT_PARENTHESES expression:e error:err statement:s
+                                    {:
+                                        parser.report_error("Expected right bracket ", err, errleft, errright);
+                                        RESULT = new WhileExp(eleft, eright, e, s);
                                     :};
 
-return_stmt                  ::= RETURN expression:e SEMI
+return_stmt                     ::= RETURN expression:e SEMI
                                     {:
                                         RESULT = new ReturnExp(eleft, eright, e);
                                     :}
                                 |   RETURN:r SEMI
                                     {:
                                         RESULT = new ReturnExp(rleft, rright, new NilExp(rleft, rright));
+                                    :}
+                                |   RETURN error:e
+                                    {:
+                                        parser.report_error("Expected semi colon ", e, eleft, eright);
+                                        RESULT = new ReturnExp(eleft, eright, new NilExp(eleft, eright));
                                     :};
 
 expression                      ::= var:v ASSIGN expression:e
@@ -370,6 +382,11 @@ var                             ::= ID:i
                                 |   ID:i LEFT_SQUARE_BRACKET expression:e RIGHT_SQUARE_BRACKET
                                     {:
                                         RESULT = new IndexVar(ileft, iright, i, e);
+                                    :}
+                                |   ID:i LEFT_SQUARE_BRACKET error:err RIGHT_SQUARE_BRACKET
+                                    {:
+                                        parser.report_error("Invalid variable ", e, errleft, errright);
+                                        RESULT = new IndexVar(ileft, iright, i, new NilExp(errleft, errright));
                                     :};
 
 obool_expression                ::= obool_expression:obe OR abool_expression:abe
@@ -506,6 +523,11 @@ factor                          ::= LEFT_PARENTHESES expression:e RIGHT_PARENTHE
 call                            ::= ID:i LEFT_PARENTHESES args:a RIGHT_PARENTHESES
                                     {:
                                         RESULT = new CallExp(ileft, iright, i, a);
+                                    :}
+                                |   ID:i LEFT_PARENTHESES error:e RIGHT_PARENTHESES
+                                    {:
+                                        parser.report_error("Invalid arguments ", e, eleft, eright);
+                                        RESULT = new CallExp(ileft, iright, i, null);
                                     :};
 
 args                            ::= arg_list:a
