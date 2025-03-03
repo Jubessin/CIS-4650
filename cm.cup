@@ -83,6 +83,15 @@ non terminal ExpList statement_list, args, arg_list;
 non terminal Var var;
 non terminal Integer addop, mulop, relop;
 
+precedence nonassoc EQ, LT, GT, LE, GE, NE;
+precedence left INT, BOOL, VOID;
+precedence left ELSE;
+precedence left OR;
+precedence left AND;
+precedence left UNARY;
+precedence left PLUS, MINUS;
+precedence left MULTIPLY, DIVIDE;
+
 start with program;
 
 program                         ::= declaration_list:d
