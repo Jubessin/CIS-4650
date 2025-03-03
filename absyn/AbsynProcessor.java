@@ -1,6 +1,5 @@
 package absyn;
 
-// TODO: Add comments.
 public class AbsynProcessor implements AbsynVisitor {
     private static final int INDENT = 4;
     
