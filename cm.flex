@@ -1,6 +1,6 @@
 /**
 * File Name: cm.flex
-* JFlex specification for C- files.
+* Description: JFlex specification for the C- compiler.
 */
    
 import java_cup.runtime.*;
@@ -185,5 +185,5 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 
 // Matches all unmatched input.
 . { 
-    System.out.println("ERROR");
+    System.err.println("ERROR");
 }

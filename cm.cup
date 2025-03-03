@@ -1,6 +1,6 @@
 /*
 * File Name: cm.cup
-* TODO: File description
+* Description: CUP specification file for the C- compiler.
 */
 
 import absyn.*;
