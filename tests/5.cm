@@ -1,4 +1,39 @@
 /*
 *   File Name: 5.cm
-*   TODO: Description
+*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
+*                - an invalid comment
+*                - an invalid iteration statement test
+*                - an invalid iteration statement test
+*                - a return statement without a semicolon
 */
+
+/************* Here is a valid comment *********/
+/* Here is a */ invalid comment */
+
+int function(void) {
+    return 0
+}
+
+void function_2(void) {
+    int a, b;
+    bool c;
+
+    a = function();
+    c = function() == a; 
+
+    while (b) {
+        while (a < 10) {
+            a = a + 1;
+        }
+
+        if (a == 10) {
+            c = c + 1;
+        }
+
+        if (c >= 3) {
+            b = false;
+        }
+    }
+
+    return;
+}
