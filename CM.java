@@ -1,6 +1,6 @@
 /*
-  File Name: CM.java
-  Description: TODO
+* File Name: CM.java
+* Description: Entrypoint of the C- compiler. 
 */
 
 import absyn.*;
