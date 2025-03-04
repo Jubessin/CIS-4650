@@ -87,7 +87,7 @@ non terminal Integer addop, mulop, relop;
 precedence nonassoc EQ, LT, GT, LE, GE, NE;
 precedence left BOOL, INT, VOID;
 precedence left RIGHT_CURLY_BRACKET, LEFT_CURLY_BRACKET;
-precedence left RIGHT_PARENTHESES, LEFT_PARENTHESES;
+precedence left RIGHT_PARENTHESES, LEFT_PARENTHESES, SEMI;
 precedence left ID, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, NUM;
 precedence left ELSE;
 precedence left OR;
