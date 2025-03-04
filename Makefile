@@ -3,10 +3,10 @@ JAVAC=javac
 JFLEX=jflex
 
 # Need to uncomment this when running on the server.
-# CLASSPATH=-cp /usr/share/java/cup.jar:.
+CLASSPATH=-cp /usr/share/java/cup.jar:.
 #CUP=cup
 # JFLEX=~/Projects/jflex/bin/jflex
-CLASSPATH=-cp ~/Projects/java-cup-11b.jar:.
+# CLASSPATH=-cp ~/Projects/java-cup-11b.jar:.
 CUP=$(JAVA) $(CLASSPATH) java_cup.Main
 
 all: CM.class
