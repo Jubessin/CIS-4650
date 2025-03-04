@@ -3,6 +3,7 @@ package absyn;
 public interface AbsynVisitor {
     public void visit(Dec dec, int level);
     public void visit(SimpleDec dec, int level);
+    public void visit(ArrayDec dec, int level);
     public void visit(FunctionDec dec, int level);
 
     public void visit(IfExp exp, int level);

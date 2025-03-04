@@ -16,8 +16,8 @@ public class CM {
     private static void processTree(Absyn tree) {
         var processor = new AbsynProcessor();
 
-        System.out.println("Abstract syntax tree: ");
         System.out.println();
+        System.out.println("Abstract syntax tree: ");
 
         tree.accept(processor, 0);
     }

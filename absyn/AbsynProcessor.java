@@ -4,11 +4,15 @@ public class AbsynProcessor implements AbsynVisitor {
     private static final int INDENT = 4;
     
     public void visit(Dec dec, int level) {
-        print(level, "Dec " + dec.name, dec.type);
+        print(level, "Dec: " + dec.name, dec.type);
     }
 
     public void visit(SimpleDec dec, int level) {
         print(level, "SimpleDec: " + dec.name, dec.type);
+    }
+
+    public void visit(ArrayDec dec, int level) {
+        print(level, "ArrayDec: " + dec.name, dec.type);
     }
 
     public void visit(FunctionDec dec, int level) {

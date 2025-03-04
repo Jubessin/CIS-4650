@@ -46,6 +46,7 @@ parser code {:
         /* Print the contents of the StringBuffer 'm', which contains
            an error message, out on a line. */
         System.err.println(m);
+        valid = false;
     }
    
     /* Change the method report_fatal_error so when it reports a fatal
@@ -84,7 +85,10 @@ non terminal Var var;
 non terminal Integer addop, mulop, relop;
 
 precedence nonassoc EQ, LT, GT, LE, GE, NE;
-precedence left INT, BOOL, VOID;
+precedence left BOOL, INT, VOID;
+precedence left RIGHT_CURLY_BRACKET, LEFT_CURLY_BRACKET;
+precedence left RIGHT_PARENTHESES, LEFT_PARENTHESES;
+precedence left ID, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, NUM;
 precedence left ELSE;
 precedence left OR;
 precedence left AND;
@@ -156,6 +160,12 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                     {:
                                         parser.report_error("Expected num ", e);
                                         RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :}
+                                |   type_specifier:t ID:i error:e NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        parser.report_error("Expected left square bracket ", e);
+                                        int num = Integer.valueOf(n);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, num);
                                     :}
                                 |   type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n error:e SEMI
                                     {:
@@ -289,6 +299,21 @@ param                           ::= type_specifier:t ID:i
                                 |   type_specifier:t ID:i LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
                                     {:
                                         RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET error:e RIGHT_SQUARE_BRACKET
+                                    {:
+                                        parser.report_error("Cannot assign array size to parameter ", e);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :}
+                                |   type_specifier:t ID:i error:e RIGHT_SQUARE_BRACKET
+                                    {:
+                                        parser.report_error("Missing left square bracket ", e);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, 0);
+                                    :}
+                                |   type_specifier:t ID:i LEFT_SQUARE_BRACKET error:e
+                                    {:
+                                        parser.report_error("Missing right square bracket ", e);
+                                        RESULT = new ArrayDec(tleft, tright, t, i, 0);
                                     :};
 
 compound_stmt                   ::= LEFT_CURLY_BRACKET local_declarations:ld statement_list:sl RIGHT_CURLY_BRACKET
@@ -366,9 +391,19 @@ selection_stmt                  ::= IF LEFT_PARENTHESES expression:e RIGHT_PAREN
                                     {:
                                         RESULT = new IfExp(eleft, eright, e, s, new NilExp(sleft, sright));
                                     :}
+                                |   IF error:err expression:e RIGHT_PARENTHESES statement:s
+                                    {:
+                                        parser.report_error("Missing left bracket ", err);
+                                        RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, new NilExp(sleft, sright));
+                                    :}
                                 |   IF LEFT_PARENTHESES error:e RIGHT_PARENTHESES statement:s
                                     {:
                                         parser.report_error("Invalid expression ", e);
+                                        RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, new NilExp(sleft, sright));
+                                    :}
+                                |   IF LEFT_PARENTHESES expression:e error:err statement:s
+                                    {:
+                                        parser.report_error("Missing right bracket ", err);
                                         RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, new NilExp(sleft, sright));
                                     :}
                                 |   IF LEFT_PARENTHESES expression:e RIGHT_PARENTHESES statement:s ELSE statement:s2
@@ -379,6 +414,16 @@ selection_stmt                  ::= IF LEFT_PARENTHESES expression:e RIGHT_PAREN
                                     {:
                                         parser.report_error("Invalid expression ", e);
                                         RESULT = new IfExp(eleft, eright, new NilExp(eleft, eright), s, s2);
+                                    :}
+                                |   IF LEFT_PARENTHESES expression:e error:err statement:s ELSE statement:s2
+                                    {:
+                                        parser.report_error("Missing right bracket ", err);
+                                        RESULT = new IfExp(eleft, eright, e, s, s2);
+                                    :}
+                                |   IF error:err expression:e RIGHT_PARENTHESES statement:s ELSE statement:s2
+                                    {:
+                                        parser.report_error("Missing left bracket ", err);
+                                        RESULT = new IfExp(eleft, eright, e, s, s2);
                                     :};
 
 iteration_stmt                  ::= WHILE LEFT_PARENTHESES expression:e RIGHT_PARENTHESES statement:s
@@ -403,6 +448,11 @@ return_stmt                     ::= RETURN expression:e SEMI
                                 |   RETURN:r SEMI
                                     {:
                                         RESULT = new ReturnExp(rleft, rright, new NilExp(rleft, rright));
+                                    :}
+                                |   RETURN error:e SEMI
+                                    {:
+                                        parser.report_error("Invalid expression ", e);
+                                        RESULT = new ReturnExp(eleft, eright, new NilExp(eleft, eright));
                                     :}
                                 |   RETURN error:e
                                     {:
@@ -432,6 +482,16 @@ var                             ::= ID:i
                                     {:
                                         parser.report_error("Invalid variable ", err);
                                         RESULT = new IndexVar(ileft, iright, i, new NilExp(errleft, errright));
+                                    :}
+                                |   ID:i error:err expression:e RIGHT_SQUARE_BRACKET
+                                    {:
+                                        parser.report_error("Missing left bracket ", err);
+                                        RESULT = new IndexVar(ileft, iright, i, e);
+                                    :}
+                                |   ID:i LEFT_SQUARE_BRACKET expression:e error:err
+                                    {:
+                                        parser.report_error("Missing right bracket ", err);
+                                        RESULT = new IndexVar(ileft, iright, i, e);
                                     :};
 
 obool_expression                ::= obool_expression:obe OR abool_expression:abe
@@ -543,6 +603,11 @@ signed_factor                   ::= MINUS:m signed_factor:sf
 
 factor                          ::= LEFT_PARENTHESES expression:e RIGHT_PARENTHESES
                                     {:
+                                        RESULT = e;
+                                    :}
+                                |   LEFT_PARENTHESES expression:e error:err
+                                    {:
+                                        parser.report_error("Missing right bracket ", err);
                                         RESULT = e;
                                     :}
                                 |   var:v
