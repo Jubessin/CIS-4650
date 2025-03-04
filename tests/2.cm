@@ -1,12 +1,11 @@
 /*
 *   File Name: 2.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - an invalid function identifier 
 *                - invalid type specifier for variable
 *                - assignation in variable declaration
 */
 
-void 2function_with_invalid_name(void) {
-    float _float_variable;
-    bool assignment_in_cminus = false;
+void function_with_invalid_name(void) {
+    float _float_variable[3];
+    int a = 3;
 }

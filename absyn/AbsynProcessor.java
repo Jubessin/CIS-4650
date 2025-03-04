@@ -17,7 +17,11 @@ public class AbsynProcessor implements AbsynVisitor {
 
     public void visit(FunctionDec dec, int level) {
         print(level++, "FunctionDec: " + dec.name, dec.type);
-        print(level, "Parameters: ", dec.params);
+        if (dec.params != null) {
+            print(level, "Parameters: ", dec.params);
+        } else {
+            print(level, "Parameters: void");
+        }
         print(level, "Body: ", dec.body);
     }
 
@@ -97,6 +101,7 @@ public class AbsynProcessor implements AbsynVisitor {
             case NameTy.Void -> "Void";
             case NameTy.Int -> "Integer";
             case NameTy.Bool -> "Boolean";
+            case NameTy.Invalid -> "Invalid";
             default -> "Unrecognized type at line " + type.row + ", column " + type.col;
         });
     }

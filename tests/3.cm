@@ -3,7 +3,7 @@
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
 *                - a function declared without a semicolon
 *                - a function declared without any parameters
-*                - a function declared without invalid parameters
+*                - a function declared with invalid parameters
 */
 
 bool test_function_declaration_without_semicolon(void)

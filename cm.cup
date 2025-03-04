@@ -38,6 +38,21 @@ parser code {:
                     m.append(", column "+(s.right+1));
             }
         }
+
+        if (info instanceof Exp) {
+            /* Declare a java_cup.runtime.Symbol object 's' with the
+               information in the object info that is being typecasted
+               as a java_cup.runtime.Symbol object. */
+            var s = ((Exp)info);
+   
+            /* Check if the line number in the input is greater or
+               equal to zero. */
+            if (s.col >= 0) {                
+                /* Add to the end of the StringBuffer error message
+                   the line number of the error in the input. */
+                m.append(" in line "+(s.col+1));
+            }
+        }
    
         /* Add to the end of the StringBuffer error message created in
            this method the message that was passed into this method. */
@@ -178,6 +193,19 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                         parser.report_error("Expected semi colon ", e);
                                         var num = Integer.valueOf(n);
                                         RESULT = new ArrayDec(tleft, tright, t, i, num);
+                                    :}
+                                |   error:e ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
+                                    {:
+                                        parser.report_error("Invalid type specifier ", e);
+                                        var num = Integer.valueOf(n);
+                                        var type_specifier = new NameTy(eleft, eright, NameTy.Invalid);
+                                        RESULT = new ArrayDec(eleft, eright, type_specifier, i, num);
+                                    :}
+                                |   error:e ID:i SEMI
+                                    {:
+                                        parser.report_error("Invalid type specifier ", e);
+                                        var type_specifier = new NameTy(eleft, eright, NameTy.Invalid);
+                                        RESULT = new SimpleDec(eleft, eright, type_specifier, i);
                                     :};
 
 type_specifier                  ::= BOOL:b
@@ -382,6 +410,11 @@ expression_stmt                 ::= expression:e SEMI
                                     {:
                                         RESULT = e;
                                     :}
+                                |   expression:e
+                                    {:
+                                        parser.report_error("Missing semicolon ", e);
+                                        RESULT = e;
+                                    :}
                                 |   SEMI:s
                                     {:
                                         RESULT = new NilExp(sleft, sright);
@@ -439,6 +472,11 @@ iteration_stmt                  ::= WHILE LEFT_PARENTHESES expression:e RIGHT_PA
                                     {:
                                         parser.report_error("Expected right bracket ", err);
                                         RESULT = new WhileExp(eleft, eright, e, s);
+                                    :}
+                                |   WHILE LEFT_PARENTHESES expression:e RIGHT_PARENTHESES error:err
+                                    {:
+                                        parser.report_error("Expected statement after while ", err);
+                                        RESULT = new WhileExp(eleft, eright, e, new NilExp(eleft, eright));
                                     :};
 
 return_stmt                     ::= RETURN expression:e SEMI
@@ -514,7 +552,7 @@ abool_expression                ::= abool_expression:abe AND ubool_expression:ub
 
 ubool_expression                ::= UNARY ubool_expression:ube
                                     {:
-                                        RESULT = new OpExp(ubeleft, uberight, new NilExp(ubeleft, uberight), OpExp.AND, ube);
+                                        RESULT = new OpExp(ubeleft, uberight, new NilExp(ubeleft, uberight), OpExp.UMINUS, ube);
                                     :}
                                 |   simple_expression:se
                                     {:
