@@ -2,8 +2,6 @@
 *   File Name: 5.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
 *                - an invalid comment
-*                - an invalid iteration statement test
-*                - an invalid iteration statement test
 *                - a return statement without a semicolon
 */
 
@@ -15,7 +13,8 @@ int function(void) {
 }
 
 void function_2(void) {
-    int a, b;
+    int a;
+    int b;
     bool c;
 
     a = function();

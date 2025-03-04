@@ -38,21 +38,6 @@ parser code {:
                     m.append(", column "+(s.right+1));
             }
         }
-
-        if (info instanceof Exp) {
-            /* Declare a java_cup.runtime.Symbol object 's' with the
-               information in the object info that is being typecasted
-               as a java_cup.runtime.Symbol object. */
-            var s = ((Exp)info);
-   
-            /* Check if the line number in the input is greater or
-               equal to zero. */
-            if (s.col >= 0) {                
-                /* Add to the end of the StringBuffer error message
-                   the line number of the error in the input. */
-                m.append(" in line "+(s.col+1));
-            }
-        }
    
         /* Add to the end of the StringBuffer error message created in
            this method the message that was passed into this method. */
@@ -103,13 +88,14 @@ precedence nonassoc EQ, LT, GT, LE, GE, NE;
 precedence left BOOL, INT, VOID;
 precedence left RIGHT_CURLY_BRACKET, LEFT_CURLY_BRACKET;
 precedence left RIGHT_PARENTHESES, LEFT_PARENTHESES, SEMI;
-precedence left ID, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, NUM;
+precedence left ID, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET;
 precedence left ELSE;
 precedence left OR;
 precedence left AND;
 precedence left UNARY;
 precedence left PLUS, MINUS;
 precedence left MULTIPLY, DIVIDE;
+precedence left NUM, TRUTH;
 
 start with program;
 
@@ -410,12 +396,12 @@ expression_stmt                 ::= expression:e SEMI
                                     {:
                                         RESULT = e;
                                     :}
-                                |   expression:e
+                                | expression:e error:err
                                     {:
-                                        parser.report_error("Missing semicolon ", e);
+                                        parser.report_error("Expected semicolon ", err);
                                         RESULT = e;
                                     :}
-                                |   SEMI:s
+                                | SEMI:s
                                     {:
                                         RESULT = new NilExp(sleft, sright);
                                     :};
