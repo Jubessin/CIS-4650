@@ -39,7 +39,7 @@ DIGIT = [0-9]
 // NUMBER is all integers.
 NUMBER = {DIGIT}+
 
-COMMENT = "/*" [^*] ~"*/" | "/*" "*"+ "/"
+COMMENT = "/*" [^/*]* ~"*/"
 
 TRUTH = "true"|"false"
 
