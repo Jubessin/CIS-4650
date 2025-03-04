@@ -5,19 +5,26 @@
 *                - a return statement without a semicolon
 */
 
+
 /************* Here is a valid comment *********/
 /* Here is a */ invalid comment */
+
+
 
 int function(void) {
     return 0
 }
 
+void invalidArguments(StringBuffer o);
+
+
 void function_2(void) {
+    double randomNumber;
     int a;
     int b;
     bool c;
 
-    a = function();
+    a = function(a,);
     c = function() == a; 
 
     while (b) {
@@ -32,6 +39,10 @@ void function_2(void) {
         if (c >= 3) {
             b = false;
         }
+    }
+
+    if () {
+
     }
 
     return;

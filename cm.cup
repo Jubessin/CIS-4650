@@ -396,12 +396,7 @@ expression_stmt                 ::= expression:e SEMI
                                     {:
                                         RESULT = e;
                                     :}
-                                | expression:e error:err
-                                    {:
-                                        parser.report_error("Expected semicolon ", err);
-                                        RESULT = e;
-                                    :}
-                                | SEMI:s
+                                |   SEMI:s
                                     {:
                                         RESULT = new NilExp(sleft, sright);
                                     :};
