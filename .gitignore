@@ -6,3 +6,5 @@ Parser.java
 Symbol.java
 parser.java
 sym.java
+*.abs
+*.sym
