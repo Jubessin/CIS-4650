@@ -24,7 +24,7 @@ public class CM {
 
     private static void runBuilder(Absyn tree) throws Exception {
         var builder = new AbsynTreeBuilder();
-        
+
         tree.accept(builder, 0);
 
         builder.flush(saveSyntaxTree 
@@ -34,8 +34,13 @@ public class CM {
     }
 
     private static void runAnalyzer(Absyn tree) {
-        // var processor = new AbsynSymbolProcessor(saveSymbolTable);
-        // tree.accept(processor, 0);
+        var analyzer = new AbsynSemanticAnalyzer();
+        tree.accept(analyzer, 0);
+
+        analyzer.flush(saveSymbolTable 
+            ? inputFile
+            : null
+        );
     }
 
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
