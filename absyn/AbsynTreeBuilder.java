@@ -4,12 +4,7 @@ import java.io.*;
 
 public class AbsynTreeBuilder implements AbsynVisitor {
     private static final int INDENT = 4;
-
-    private static StringBuilder sb;
-
-    public AbsynTreeBuilder() {
-        sb = new StringBuilder();
-    }
+    private static final StringBuilder sb = new StringBuilder();
     
     public void flush(String file) throws FileNotFoundException, UnsupportedEncodingException {
         if (file == null) {

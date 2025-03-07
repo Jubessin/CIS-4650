@@ -1,6 +1,15 @@
 package absyn;
 
+import java.util.*;
+
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
+    private static final StringBuilder sb = new StringBuilder();
+    private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<String, ArrayList<NodeType>>();
+    
+    public void flush(String file) {
+        
+    }
+    
     public void visit(Dec dec, int level) {
 
     }
