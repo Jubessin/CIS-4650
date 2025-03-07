@@ -2,12 +2,12 @@ package absyn;
 
 import java.io.*;
 
-public class AbsynTreeProcessor implements AbsynVisitor {
+public class AbsynTreeBuilder implements AbsynVisitor {
     private static final int INDENT = 4;
 
     private static StringBuilder sb;
 
-    public AbsynTreeProcessor() {
+    public AbsynTreeBuilder() {
         sb = new StringBuilder();
     }
     

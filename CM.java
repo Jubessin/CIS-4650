@@ -22,16 +22,18 @@ public class CM {
         return new parser(lexer);
     }
 
-    private static void processSyntaxTree(Absyn tree) throws Exception {
-        var processor = new AbsynTreeProcessor();
-        tree.accept(processor, 0);
+    private static void runBuilder(Absyn tree) throws Exception {
+        var builder = new AbsynTreeBuilder();
+        
+        tree.accept(builder, 0);
 
-        processor.flush(saveSyntaxTree 
+        builder.flush(saveSyntaxTree 
             ? inputFile
-            : null);
+            : null
+        );
     }
 
-    private static void processSymbolTable(Absyn tree) {
+    private static void runAnalyzer(Absyn tree) {
         // var processor = new AbsynSymbolProcessor(saveSymbolTable);
         // tree.accept(processor, 0);
     }
@@ -76,8 +78,8 @@ public class CM {
             var parser = createParser(argv);
             var tree = (Absyn)parser.parse().value;
 
-            processSyntaxTree(tree);
-            processSymbolTable(tree);
+            runBuilder(tree);
+            runAnalyzer(tree);
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IllegalArgumentException e) {
