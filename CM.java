@@ -8,7 +8,8 @@ import java.io.*;
 
 public class CM {
     private static String inputFile;
-    private static boolean _processTree;
+    private static boolean saveSyntaxTree;
+    private static boolean saveSymbolTable;
 
     private static String PROGRAM_USAGE = 
     "java -cp <cup_jar_path> CM -a <input_file>" +
@@ -21,16 +22,18 @@ public class CM {
         return new parser(lexer);
     }
 
-    private static void processTree(Absyn tree) {
-        if (!_processTree)
-            return;
-        
-        var processor = new AbsynProcessor();
-
-        System.out.println();
-        System.out.println("Abstract syntax tree: ");
-
+    private static void processSyntaxTree(Absyn tree) throws Exception {
+        var processor = new AbsynTreeProcessor();
         tree.accept(processor, 0);
+
+        processor.flush(saveSyntaxTree 
+            ? inputFile
+            : null);
+    }
+
+    private static void processSymbolTable(Absyn tree) {
+        // var processor = new AbsynSymbolProcessor(saveSymbolTable);
+        // tree.accept(processor, 0);
     }
 
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
@@ -41,7 +44,12 @@ public class CM {
             var _arg = arg.trim();
 
             if (_arg.equals("-a")) {
-                _processTree = true;
+                saveSyntaxTree = true;
+                continue;
+            }
+
+            if (_arg.equals("-s")) {
+                saveSymbolTable = true;
                 continue;
             }
 
@@ -68,7 +76,8 @@ public class CM {
             var parser = createParser(argv);
             var tree = (Absyn)parser.parse().value;
 
-            processTree(tree);
+            processSyntaxTree(tree);
+            processSymbolTable(tree);
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IllegalArgumentException e) {

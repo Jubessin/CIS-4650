@@ -1,7 +1,29 @@
 package absyn;
 
-public class AbsynProcessor implements AbsynVisitor {
+import java.io.*;
+
+public class AbsynTreeProcessor implements AbsynVisitor {
     private static final int INDENT = 4;
+
+    private static StringBuilder sb;
+
+    public AbsynTreeProcessor() {
+        sb = new StringBuilder();
+    }
+    
+    public void flush(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        if (file == null) {
+            System.out.println(sb.toString());
+        }
+        else {
+            file = file.replace(".cm", ".abs");
+
+            // System.out.println("saving to " + file);
+            var writer = new PrintWriter(file, "UTF-8");
+            writer.println(sb.toString());
+            writer.close();
+        }
+    }
     
     public void visit(Dec dec, int level) {
         print(level, "Dec: " + dec.name, dec.type);
@@ -20,7 +42,7 @@ public class AbsynProcessor implements AbsynVisitor {
         if (dec.params != null) {
             print(level, "Parameters: ", dec.params);
         } else {
-            print(level, "Parameters: void");
+            print(level, "Parameters: Void");
         }
         print(level, "Body: ", dec.body);
     }
@@ -144,7 +166,8 @@ public class AbsynProcessor implements AbsynVisitor {
     private void print(int level, String message, Absyn... tree) {
         indent(level);
 
-        System.out.println(message);
+        sb.append(message + "\n");
+        // System.out.println(message);
 
         for (Absyn node : tree) {
             if (node == null)
@@ -155,6 +178,7 @@ public class AbsynProcessor implements AbsynVisitor {
     }
 
     private static void indent(int level) {
-        System.out.print(" ".repeat(level * INDENT));
+        sb.append(" ".repeat(level * INDENT));
+        // System.out.print(" ".repeat(level * INDENT));
     }
 }
