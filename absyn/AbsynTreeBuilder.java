@@ -3,21 +3,22 @@ package absyn;
 import java.io.*;
 
 public class AbsynTreeBuilder implements AbsynVisitor {
-    private static final int INDENT = 4;
     private static final StringBuilder sb = new StringBuilder();
+    private static final int INDENT = 4;
+
+    private boolean isValid = true;
     
-    public void flush(String file) throws FileNotFoundException, UnsupportedEncodingException {
+    public boolean finish(String file) throws FileNotFoundException, UnsupportedEncodingException {
         if (file == null) {
             System.out.println(sb.toString());
         }
         else {
-            file = file.replace(".cm", ".abs");
-
-            // System.out.println("saving to " + file);
-            var writer = new PrintWriter(file, "UTF-8");
+            var writer = new PrintWriter(file.replace(".cm", ".abs"), "UTF-8");
             writer.println(sb.toString());
             writer.close();
         }
+
+        return isValid;
     }
     
     public void visit(Dec dec, int level) {

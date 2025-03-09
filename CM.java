@@ -27,17 +27,19 @@ public class CM {
 
         tree.accept(builder, 0);
 
-        builder.flush(saveSyntaxTree 
+        var builderFile = saveSyntaxTree 
             ? inputFile
-            : null
-        );
+            : null;
+
+        if (!builder.finish(builderFile))
+            throw new Exception("Failed to build abstract syntax tree.");
     }
 
     private static void runAnalyzer(Absyn tree) {
         var analyzer = new AbsynSemanticAnalyzer();
         tree.accept(analyzer, 0);
 
-        analyzer.flush(saveSymbolTable 
+        analyzer.finish(saveSymbolTable 
             ? inputFile
             : null
         );

@@ -3,11 +3,13 @@ package absyn;
 import java.util.*;
 
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
-    private static final StringBuilder sb = new StringBuilder();
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<String, ArrayList<NodeType>>();
+    private static final StringBuilder sb = new StringBuilder();
+
+    private boolean isValid = true;
     
-    public void flush(String file) {
-        
+    public boolean finish(String file) {
+        return isValid;
     }
     
     public void visit(Dec dec, int level) {
