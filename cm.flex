@@ -185,5 +185,6 @@ ID = ("_" | {LETTER})("_" | {LETTER} | {DIGIT})*
 
 // Matches all unmatched input.
 . { 
-    System.err.println("ERROR");
+    System.err.println("Unexpected token: \"" + yytext() + "\" - at line " + (yyline + 1) + ", column " + (yycolumn + 1));
+    System.exit(1);
 }
