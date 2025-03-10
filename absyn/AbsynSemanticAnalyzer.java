@@ -1,15 +1,22 @@
 package absyn;
 
+import java.io.*;
 import java.util.*;
 
 // TODO: add dummy types for int and bool for operation expression comparisons  
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<String, ArrayList<NodeType>>();
     private static final StringBuilder sb = new StringBuilder();
+    private static final int INDENT = 4;
 
     private static int scope;
 
     private boolean isValid = true;
+    
+    private static void step(int level, String message) {
+        indent(level);
+        sb.append(message + "\n");
+    }
     
     private static void insert(Dec dec) {
         var list = table.getOrDefault(dec.name, null);
@@ -47,8 +54,21 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             value.removeIf(n -> ((NodeType)n).level > scope);
         }
     }
+
+    private static void indent(int level) {
+        sb.append(" ".repeat(level * INDENT));
+    }
     
-    public boolean finish(String file) {
+    public boolean finish(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        if (file == null) {
+            System.out.println(sb.toString());
+        }
+        else {
+            var writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8");
+            writer.println(sb.toString());
+            writer.close();
+        }
+
         return isValid;
     }
     
@@ -67,14 +87,22 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(FunctionDec dec, int level) {
         insert(dec);
 
-        // visit(dec.params, level);
+        var isFunctionDeclaration = dec.body instanceof CompoundExp;
 
-        // ++scope;
+        if (!isFunctionDeclaration)
+            return;
 
-        // visit(dec.body, level);
+        indent(level);
+        sb.append("Entering the scope for function " + dec.name + ":\n");
+        
+        dec.body.accept(this, level);
+
+        indent(level);
+        sb.append("Leaving the function scope\n");
     }
 
     public void visit(IfExp exp, int level) {
+        step(level++, "Entering a new if block:");
         // visit(exp.test, level);
         
         // ++scope;
@@ -86,6 +114,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         // }
 
         // --scope;
+
+        step(--level, "Leaving the if block");
     }
 
     public void visit(OpExp exp, int level) {
@@ -109,7 +139,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     public void visit(WhileExp exp, int level) {
+        step(level++, "Entering a new while block:");
 
+        step(--level, "Leaving the while block");
     }
 
     public void visit(AssignExp exp, int level) {
@@ -121,7 +153,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     public void visit(CompoundExp exp, int level) {
-
+        scope++;
     }
 
     public void visit(CallExp exp, int level) {
@@ -133,11 +165,25 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     public void visit(DecList list, int level) {
+        step(level++, "Entering the global scope:");
+        scope++;
+        while (list != null) {
+            if (list.head != null) {
+                list.head.accept(this, level);
+            }
+            list = list.tail;
+        }
 
+        step(--level, "Leaving the global scope");
     }
 
     public void visit(ExpList list, int level) {
-
+        while (list != null) {
+            if (list.head != null) {
+                list.head.accept(this, level);
+            }
+            list = list.tail;
+        }
     }
 
     public void visit(VarDecList list, int level) {

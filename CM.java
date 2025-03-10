@@ -35,7 +35,7 @@ public class CM {
             throw new Exception("Failed to build abstract syntax tree.");
     }
 
-    private static void runAnalyzer(Absyn tree) {
+    private static void runAnalyzer(Absyn tree) throws Exception {
         var analyzer = new AbsynSemanticAnalyzer();
         tree.accept(analyzer, 0);
 
