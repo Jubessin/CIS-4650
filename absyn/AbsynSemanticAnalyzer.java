@@ -23,6 +23,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
         if (list == null) {
             list = new ArrayList<NodeType>();
+            table.put(dec.name, list);
         }
 
         list.add(new NodeType(dec.name, dec, scope));
@@ -166,12 +167,30 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     public void visit(DecList list, int level) {
         step(level++, "Entering the global scope:");
+        
         scope++;
+
         while (list != null) {
             if (list.head != null) {
                 list.head.accept(this, level);
             }
             list = list.tail;
+        }
+
+        var iter = table.entrySet().iterator();
+
+        while (iter.hasNext()) {
+            var pair = (Map.Entry)iter.next();
+            var key = pair.getKey();
+            var value = (ArrayList)pair.getValue();
+
+            if (value.size() == 0)
+                continue;
+
+            var nodeType = (NodeType)value.get(0);
+
+            // TODO: Add type information.
+            sb.append(nodeType.name + ": \n");
         }
 
         step(--level, "Leaving the global scope");
