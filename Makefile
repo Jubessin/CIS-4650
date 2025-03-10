@@ -23,5 +23,8 @@ parser.java: cm.cup
 	#$(CUP) -dump -expect 3 cm.cup
 	$(CUP) -expect 3 cm.cup
 
+run:
+	java $(CLASSPATH) CM -a $(file)
+
 clean:
 	rm -f parser.java Lexer.java sym.java *.class absyn/*.class *~
