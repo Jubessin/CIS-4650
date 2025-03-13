@@ -197,7 +197,6 @@ public class AbsynTreeBuilder implements AbsynVisitor {
         indent(level);
 
         sb.append(message).append("\n");
-        // System.out.println(message);
 
         for (Absyn node : tree) {
             if (node == null) {
@@ -210,6 +209,5 @@ public class AbsynTreeBuilder implements AbsynVisitor {
 
     private static void indent(int level) {
         sb.append(" ".repeat(level * INDENT));
-        // System.out.print(" ".repeat(level * INDENT));
     }
 }
