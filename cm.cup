@@ -184,27 +184,27 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                     {:
                                         parser.report_error("Invalid type specifier ", e);
                                         var num = Integer.valueOf(n);
-                                        var type_specifier = new NameTy(eleft, eright, NameTy.Invalid);
+                                        var type_specifier = new NameTy(eleft, eright, NameTy.INVALID);
                                         RESULT = new ArrayDec(eleft, eright, type_specifier, i, num);
                                     :}
                                 |   error:e ID:i SEMI
                                     {:
                                         parser.report_error("Invalid type specifier ", e);
-                                        var type_specifier = new NameTy(eleft, eright, NameTy.Invalid);
+                                        var type_specifier = new NameTy(eleft, eright, NameTy.INVALID);
                                         RESULT = new SimpleDec(eleft, eright, type_specifier, i);
                                     :};
 
 type_specifier                  ::= BOOL:b
                                     {:
-                                        RESULT = new NameTy(bleft, bright, NameTy.Bool);
+                                        RESULT = new NameTy(bleft, bright, NameTy.BOOL);
                                     :}
                                 |   INT:i
                                     {:
-                                        RESULT = new NameTy(ileft, iright, NameTy.Int);
+                                        RESULT = new NameTy(ileft, iright, NameTy.INT);
                                     :}
                                 |   VOID:v
                                     {:
-                                        RESULT = new NameTy(vleft, vright, NameTy.Void);
+                                        RESULT = new NameTy(vleft, vright, NameTy.VOID);
                                     :};
 
 fun_declaration                 ::= type_specifier:t ID:i LEFT_PARENTHESES params:p RIGHT_PARENTHESES compound_stmt:c

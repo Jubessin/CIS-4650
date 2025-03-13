@@ -1,21 +1,22 @@
 /*
 * File Name: CM.java
 * Description: Entrypoint of the C- compiler. 
-*/
+ */
 
 import absyn.*;
 import java.io.*;
 
 public class CM {
+
     private static String inputFile;
     private static boolean saveSyntaxTree;
     private static boolean saveSymbolTable;
 
-    private static String PROGRAM_USAGE = 
-    "java -cp <cup_jar_path> CM -a <input_file>" +
-    "\n\t-a             (Optional) Processes and displays the abstract syntax tree for the input file" +
-    "\n\tinput_file     The file to compile, with the .cm extension";
-    
+    private static String PROGRAM_USAGE
+            = "java -cp <cup_jar_path> CM -a <input_file>"
+            + "\n\t-a             (Optional) Processes and displays the abstract syntax tree for the input file"
+            + "\n\tinput_file     The file to compile, with the .cm extension";
+
     private static parser createParser(String args[]) throws Exception {
         var reader = new FileReader(inputFile);
         var lexer = new Lexer(reader);
@@ -27,27 +28,29 @@ public class CM {
 
         tree.accept(builder, 0);
 
-        var builderFile = saveSyntaxTree 
-            ? inputFile
-            : null;
+        var builderFile = saveSyntaxTree
+                ? inputFile
+                : null;
 
-        if (!builder.finish(builderFile))
+        if (!builder.finish(builderFile)) {
             throw new Exception("Failed to build abstract syntax tree.");
+        }
     }
 
     private static void runAnalyzer(Absyn tree) throws Exception {
         var analyzer = new AbsynSemanticAnalyzer();
         tree.accept(analyzer, 0);
 
-        analyzer.finish(saveSymbolTable 
-            ? inputFile
-            : null
+        analyzer.finish(saveSymbolTable
+                ? inputFile
+                : null
         );
     }
 
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
-        if (args.length == 0)
+        if (args.length == 0) {
             throw new IllegalArgumentException("The CM compiler requires a valid input file.");
+        }
 
         for (var arg : args) {
             var _arg = arg.trim();
@@ -69,13 +72,15 @@ public class CM {
 
             System.err.println("Unrecognized argument: " + _arg);
         }
-    
-        if (inputFile == null)
+
+        if (inputFile == null) {
             throw new IllegalArgumentException("The CM compiler requires a valid input file.");
+        }
 
         var file = new File(inputFile);
-        if (!file.exists())
+        if (!file.exists()) {
             throw new FileNotFoundException("Cannot find the specified input file at path: " + inputFile);
+        }
     }
 
     public static void main(String argv[]) {
@@ -83,7 +88,7 @@ public class CM {
             readCommandLineArguments(argv);
 
             var parser = createParser(argv);
-            var tree = (Absyn)parser.parse().value;
+            var tree = (Absyn) parser.parse().value;
 
             runBuilder(tree);
             runAnalyzer(tree);

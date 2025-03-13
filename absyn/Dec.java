@@ -1,6 +1,7 @@
 package absyn;
 
 public abstract class Dec extends Absyn {
+
     public NameTy type;
     public String name;
 
@@ -10,4 +11,7 @@ public abstract class Dec extends Absyn {
         this.type = type;
         this.name = name;
     }
+
+    @Override
+    abstract public String toString();
 }

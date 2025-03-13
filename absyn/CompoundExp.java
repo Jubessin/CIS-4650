@@ -1,6 +1,7 @@
 package absyn;
 
 public class CompoundExp extends Exp {
+
     public ExpList exps;
     public VarDecList decs;
 
@@ -9,7 +10,8 @@ public class CompoundExp extends Exp {
         this.exps = exps;
         this.decs = decs;
     }
-    
+
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }

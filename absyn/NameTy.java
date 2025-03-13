@@ -1,10 +1,11 @@
 package absyn;
 
 public class NameTy extends Absyn {
-    public static final int Bool = 1;
-    public static final int Int = 2;
-    public static final int Void = 3;
-    public static final int Invalid = 4;
+
+    public static final int BOOL = 1;
+    public static final int INT = 2;
+    public static final int VOID = 3;
+    public static final int INVALID = 4;
 
     public int type;
 
@@ -14,7 +15,26 @@ public class NameTy extends Absyn {
         this.type = type;
     }
 
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
+    }
+
+    @Override
+    public String toString() {
+        switch (this.type) {
+            case BOOL -> {
+                return "bool";
+            }
+            case INT -> {
+                return "int";
+            }
+            case VOID -> {
+                return "void";
+            }
+            default -> {
+                return "";
+            }
+        }
     }
 }
