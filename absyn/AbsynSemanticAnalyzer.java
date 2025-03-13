@@ -225,12 +225,4 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(SimpleVar var, int level) {
 
     }
-
-    public boolean isIsValid() {
-        return isValid;
-    }
-
-    public void setIsValid(boolean isValid) {
-        this.isValid = isValid;
-    }
 }

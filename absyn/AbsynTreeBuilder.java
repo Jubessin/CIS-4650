@@ -212,12 +212,4 @@ public class AbsynTreeBuilder implements AbsynVisitor {
         sb.append(" ".repeat(level * INDENT));
         // System.out.print(" ".repeat(level * INDENT));
     }
-
-    public boolean isIsValid() {
-        return isValid;
-    }
-
-    public void setIsValid(boolean isValid) {
-        this.isValid = isValid;
-    }
 }

@@ -6,6 +6,7 @@
 import absyn.*;
 import java.io.*;
 
+// TODO: Update program usage.
 public class CM {
 
     private static String inputFile;
