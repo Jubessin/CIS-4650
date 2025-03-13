@@ -1,6 +1,7 @@
 package absyn;
 
 public class WhileExp extends Exp {
+
     public Exp test;
     public Exp body;
 
@@ -10,6 +11,7 @@ public class WhileExp extends Exp {
         this.body = body;
     }
 
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }
