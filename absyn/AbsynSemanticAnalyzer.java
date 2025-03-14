@@ -12,9 +12,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     private static final int INDENT = 4;
 
     private boolean isValid = true;
+    private FunctionDec currentFunction;
 
     private static void error(String message) {
-        errorBuilder.append(message + "\n");
+        errorBuilder.append("error: " + message + "\n");
     }
 
     private static void step(int level, String message) {
@@ -97,14 +98,29 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(FunctionDec dec, int level) {
-        insert(dec, level);
+        var node = lookup(dec.name);
 
-        if (dec.params != null) {
-            dec.params.accept(this, level + 1);
+        if (node != null) {
+            var _dec = (FunctionDec)node.dec;
+
+            if (!_dec.params.toString().equals(dec.params.toString())) {
+                error("redefinition of " + "'" + dec.name + "'");
+            }
+
+            if (!_dec.isPrototype && !dec.isPrototype) {
+                error("redefinition of " + "'" + dec.name + "'");
+            }
         }
+        
+        currentFunction = dec;
+        insert(dec, level);
 
         if (dec.body instanceof NilExp) {
             return;
+        }
+        
+        if (dec.params != null) {
+            dec.params.accept(this, level + 1);
         }
 
         step(level, "Entering the scope for function " + dec.name + ":");
@@ -209,7 +225,26 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(ReturnExp exp, int level) {
-        
+        // TODO: Add type based on expression instance.
+         
+        switch (currentFunction.type.type) {
+            case NameTy.BOOL:
+                if (!(exp.exp instanceof BoolExp)) {
+                    error("incompatible types when returning type" + "where 'boolean' was expected");
+                }
+                break;
+            case NameTy.INT:
+                if (!(exp.exp instanceof IntExp)) {
+                    error("incompatible types when returning type" + "where 'integer' was expected");
+                }
+                break;
+            case NameTy.VOID:
+                if (!(exp.exp instanceof NilExp)) {
+                    error("incompatible types when returning type" + "where 'void' was expected");
+                }
+                break;
+            default: break;
+        }
     }
 
     @Override
