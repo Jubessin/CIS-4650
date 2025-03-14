@@ -6,16 +6,20 @@ import java.util.*;
 // TODO: add dummy types for int and bool for operation expression comparisons  
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
-
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
-    private static final StringBuilder sb = new StringBuilder();
+    private static final StringBuilder errorBuilder = new StringBuilder();
+    private static final StringBuilder tableBuilder = new StringBuilder();
     private static final int INDENT = 4;
 
     private boolean isValid = true;
 
+    private static void error(String message) {
+        errorBuilder.append(message + "\n");
+    }
+
     private static void step(int level, String message) {
         indent(level);
-        sb.append(message + "\n");
+        tableBuilder.append(message + "\n");
     }
 
     private static void insert(Dec dec, int level) {
@@ -42,15 +46,17 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     private static void indent(int level) {
-        sb.append(" ".repeat(level * INDENT));
+        tableBuilder.append(" ".repeat(level * INDENT));
     }
 
     public boolean finish(String file) throws FileNotFoundException, UnsupportedEncodingException {
         if (file == null) {
-            System.out.println(sb.toString());
+            System.out.println(tableBuilder.toString());
+            System.out.println(errorBuilder.toString());
         } else {
             try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
-                writer.println(sb.toString());
+                writer.println(tableBuilder.toString());
+                writer.println(errorBuilder.toString());
             }
         }
 
@@ -203,12 +209,19 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(ReturnExp exp, int level) {
-
+        
     }
 
     @Override
     public void visit(CallExp exp, int level) {
+        var functionName = exp.func;
+        var node = lookup(functionName);
 
+        if (node == null) {
+            error("'" + functionName + "' identifier not found");
+        }
+
+        // TODO: Check parameters
     }
 
     @Override
