@@ -57,6 +57,12 @@ public class Error {
         isValid = false;
     }
 
+    public static void invalidIndexType(IndexVar var) {
+        System.err.println(RED + "ERROR: " + RESET + "Incompatible index value, expected " + YELLOW
+                + "\'int\'" + RESET + var.exp.lineToString());
+        isValid = false;
+    }
+
     public static void invalidReturnType(ReturnExp exp) {
         // System.err.println(RED + "ERROR: " + RESET + "Incompatible return type, expected " + YELLOW
         //         + "\'" + dec.name + "\'" + RESET + dec.lineToString());

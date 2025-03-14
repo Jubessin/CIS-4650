@@ -14,10 +14,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     private FunctionDec currentFunction;
 
-    private static void error(String message) {
-        errorBuilder.append("error: " + message + "\n");
-    }
-
+    // private static void error(String message) {
+    //     errorBuilder.append("error: " + message + "\n");
+    // }
     private static void step(int level, String message) {
         indent(level);
         tableBuilder.append(message + "\n");
@@ -195,7 +194,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         left.accept(this, level);
         right.accept(this, level);
 
-        switch (exp.expType) {
+        switch (exp.operationType) {
             case OpExp.isRelationalOperation -> {
                 exp.expType = NameTy.BOOL;
                 if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
@@ -203,12 +202,14 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 }
             }
             case OpExp.isArithmeticOperation -> {
+                // need to implement unary
                 exp.expType = NameTy.INT;
                 if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
                     Error.invalidArithmeticOperation(exp);
                 }
             }
             case OpExp.isBooleanOperation -> {
+                // might need to change later
                 exp.expType = NameTy.BOOL;
                 if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
                     if (!(left.expType == NameTy.VOID && right.expType != NameTy.VOID)) {
@@ -271,6 +272,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(AssignExp exp, int level) {
         exp.left.accept(this, level);
+        System.out.println("Line number " + (exp.row + 1) + " " + exp.right.expType);
     }
 
     @Override
@@ -338,6 +340,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(IndexVar var, int level) {
         // if the var type is indexvar, then we need to check the expression type for the index
+        var.exp.accept(this, level);
+        if (var.exp.expType != NameTy.INT) {
+            Error.invalidIndexType(var);
+        }
     }
 
     @Override
