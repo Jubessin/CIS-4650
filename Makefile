@@ -5,7 +5,7 @@ JFLEX=jflex
 # Need to uncomment this when running on the server.
 #CUP=cup
 # JFLEX=~/Projects/jflex/bin/jflex
-CLASSPATH=-cp ./java-cup-11b.jar:.
+CLASSPATH=-cp ./modules/java-cup-11b.jar:.
 CUP=$(JAVA) $(CLASSPATH) java_cup.Main
 
 all: CM.class
