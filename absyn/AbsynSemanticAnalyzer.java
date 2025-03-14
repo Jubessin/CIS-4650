@@ -6,6 +6,7 @@ import java.util.*;
 // TODO: add dummy types for int and bool for operation expression comparisons  
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
+
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
     private static final StringBuilder errorBuilder = new StringBuilder();
     private static final StringBuilder tableBuilder = new StringBuilder();
@@ -24,35 +25,39 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     private static void insert(Dec dec, int level) {
+        if (lookup(dec.name) != null && lookup(dec.name).level == level) {
+            Error.variableRedefinition(dec);
+            return;
+        }
         ArrayList<NodeType> list = table.getOrDefault(dec.name, null);
         if (list == null) {
             table.put(dec.name, new ArrayList<>());
         }
+
         list = table.getOrDefault(dec.name, null);
         list.add(new NodeType(dec.name, dec, level));
     }
 
+    // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
-        var node = lookup(dec.name);
+        NodeType node = lookup(dec.name);
 
         if (node != null) {
-            var _dec = (FunctionDec)node.dec;
+            FunctionDec functionDec = (FunctionDec) node.dec;
 
-            if (!_dec.params.toString().equals(dec.params.toString())) {
-                error("redefinition of " + "'" + dec.name + "'");
+            if (!functionDec.params.toString().equals(dec.params.toString())) {
+                Error.prototypeRedefinition(dec);
             }
 
-            if (!_dec.isPrototype && !dec.isPrototype) {
-                error("redefinition of " + "'" + dec.name + "'");
+            if (!functionDec.isPrototype && !dec.isPrototype) {
+                Error.functionRedefinition(dec);
             }
 
-            var _node = table.get(dec.name).get(0);
-
-            _node.dec = dec;
+            node.dec = dec;
             return;
         }
 
-        insert((Dec)dec, level);
+        insert((Dec) dec, level);
     }
 
     private static NodeType lookup(String id) {
@@ -83,14 +88,22 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 writer.println(errorBuilder.toString());
             }
         }
-
         return isValid;
+    }
+
+    public void addPredefinedFunctions() {
+        NameTy nameType = new NameTy(-1, -1, NameTy.INT);
+        FunctionDec input = new FunctionDec(-1, -1, nameType, "input", null, new NilExp(-1, -1)),
+                output = new FunctionDec(-1, -1, nameType, "output", null, new NilExp(-1, -1));
+        insert(input, 1);
+        insert(output, 1);
     }
 
     @Override
     public void visit(DecList list, int level) {
         step(level, "Entering the global scope:");
 
+        addPredefinedFunctions();
         while (list != null) {
             if (list.head != null) {
                 list.head.accept(this, level + 1);
@@ -127,7 +140,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         if (dec.body instanceof NilExp) {
             return;
         }
-        
+
         if (dec.params != null) {
             dec.params.accept(this, level + 1);
         }
@@ -184,17 +197,21 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IntExp exp, int level) {
-
     }
 
     @Override
     public void visit(NilExp exp, int level) {
-
     }
 
     @Override
     public void visit(VarExp exp, int level) {
-
+        NodeType variable = lookup(exp._var.name);
+        if (variable == null) {
+            Error.variableDoesNotExist(exp);
+            return;
+        }
+        exp.expType = variable.dec.type.type;
+        // if the var type is indexvar, then we need to check the expression type for the index
     }
 
     @Override
@@ -224,13 +241,13 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(AssignExp exp, int level) {
-
+        exp.left.accept(this, level);
     }
 
     @Override
     public void visit(ReturnExp exp, int level) {
         // TODO: Add type based on expression instance.
-        
+
         switch (currentFunction.type.type) {
             case NameTy.BOOL:
                 if (!(exp.exp instanceof BoolExp)) {
@@ -247,7 +264,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                     error("incompatible types when returning type" + "where 'void' was expected");
                 }
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -257,7 +275,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         var node = lookup(functionName);
 
         if (node == null) {
-            error("'" + functionName + "' identifier not found");
+            Error.functionDoesNotExit(exp);
         }
 
         // TODO: Check parameters
