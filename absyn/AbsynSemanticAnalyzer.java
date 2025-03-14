@@ -166,11 +166,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             }
             iter = iter.tail;
         }
-        // for (NodeType node : table) {
-        //     Dec dec = node.dec;
-        //     String string = dec.toString();
-        //     System.out.println(string);
-        // }
     }
 
     @Override
@@ -226,7 +221,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(ReturnExp exp, int level) {
         // TODO: Add type based on expression instance.
-         
+        
         switch (currentFunction.type.type) {
             case NameTy.BOOL:
                 if (!(exp.exp instanceof BoolExp)) {
