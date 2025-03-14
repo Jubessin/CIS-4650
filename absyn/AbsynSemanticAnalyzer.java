@@ -32,6 +32,29 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         list.add(new NodeType(dec.name, dec, level));
     }
 
+    private static void insert(FunctionDec dec, int level) {
+        var node = lookup(dec.name);
+
+        if (node != null) {
+            var _dec = (FunctionDec)node.dec;
+
+            if (!_dec.params.toString().equals(dec.params.toString())) {
+                error("redefinition of " + "'" + dec.name + "'");
+            }
+
+            if (!_dec.isPrototype && !dec.isPrototype) {
+                error("redefinition of " + "'" + dec.name + "'");
+            }
+
+            var _node = table.get(dec.name).get(0);
+
+            _node.dec = dec;
+            return;
+        }
+
+        insert((Dec)dec, level);
+    }
+
     private static NodeType lookup(String id) {
         ArrayList<NodeType> list = table.getOrDefault(id, null);
         if (list != null) {
@@ -98,20 +121,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(FunctionDec dec, int level) {
-        var node = lookup(dec.name);
-
-        if (node != null) {
-            var _dec = (FunctionDec)node.dec;
-
-            if (!_dec.params.toString().equals(dec.params.toString())) {
-                error("redefinition of " + "'" + dec.name + "'");
-            }
-
-            if (!_dec.isPrototype && !dec.isPrototype) {
-                error("redefinition of " + "'" + dec.name + "'");
-            }
-        }
-        
         currentFunction = dec;
         insert(dec, level);
 
