@@ -7,7 +7,7 @@ import java.util.*;
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
-    private static final ArrayList<NodeType> table = new ArrayList<>();
+    private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
     private static final StringBuilder sb = new StringBuilder();
     private static final int INDENT = 4;
 
@@ -19,20 +19,26 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     private static void insert(Dec dec, int level) {
-        table.add(new NodeType(dec.name, dec, level));
+        ArrayList<NodeType> list = table.getOrDefault(dec.name, null);
+        if (list == null) {
+            table.put(dec.name, new ArrayList<>());
+        }
+        list = table.getOrDefault(dec.name, null);
+        list.add(new NodeType(dec.name, dec, level));
     }
 
     private static NodeType lookup(String id) {
-        for (NodeType node : table) {
-            if (node.name.equals(id)) {
-                return node;
-            }
+        ArrayList<NodeType> list = table.getOrDefault(id, null);
+        if (list != null) {
+            return list.get(list.size() - 1);
         }
         return null;
     }
 
     private static void delete(int level) {
-        table.removeIf(node -> node.level == level);
+        for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
+            list.getValue().removeIf(node -> node.level == level);
+        }
     }
 
     private static void indent(int level) {
@@ -62,9 +68,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             list = list.tail;
         }
 
-        for (NodeType node : table) {
-            Dec dec = node.dec;
-            step(level + 1, dec.toString());
+        for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
+            for (NodeType node : decList.getValue()) {
+                Dec dec = node.dec;
+                step(level + 1, dec.toString());
+            }
         }
 
         delete(level + 1);
@@ -115,10 +123,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             iter = iter.tail;
         }
 
-        for (NodeType node : table) {
-            Dec dec = node.dec;
-            if (node.level == level) {
-                step(level, dec.toString());
+        for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
+            for (NodeType node : list.getValue()) {
+                Dec dec = node.dec;
+                if (node.level == level) {
+                    step(level, dec.toString());
+                }
             }
         }
 
