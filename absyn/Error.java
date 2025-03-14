@@ -39,21 +39,36 @@ public class Error {
         isValid = false;
     }
 
+    public static void invalidAssignExpression(AssignExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Invalid assigning of " + YELLOW
+                + "\'" + exp.left._var.name + "\'" + RESET + exp.right.lineToString());
+        isValid = false;
+    }
+
+    public static void invalidReturnType(ReturnExp exp, NameTy type) {
+        System.err.println(RED + "ERROR: " + RESET + "Invalid return type, expected " + YELLOW
+                + "\'" + type.toString() + "\'" + RESET + exp.exp.lineToString());
+        isValid = false;
+    }
+
     public static void invalidRelationalOperation(OpExp exp) {
         System.err.println(RED + "ERROR: " + RESET + "Type mismatch for relational operation " + YELLOW
                 + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        // System.out.println(exp.left.expType + " " + exp.right.expType);
         isValid = false;
     }
 
     public static void invalidArithmeticOperation(OpExp exp) {
         System.err.println(RED + "ERROR: " + RESET + "Type mismatch for arithmetic operation " + YELLOW
                 + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        // System.out.println(exp.left.expType + " " + exp.right.expType);
         isValid = false;
     }
 
     public static void invalidBooleanOperation(OpExp exp) {
         System.err.println(RED + "ERROR: " + RESET + "Type mismatch for boolean operation " + YELLOW
                 + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        // System.out.println(exp.left.expType + " " + exp.right.expType);
         isValid = false;
     }
 
@@ -63,10 +78,9 @@ public class Error {
         isValid = false;
     }
 
-    public static void invalidReturnType(ReturnExp exp) {
-        // System.err.println(RED + "ERROR: " + RESET + "Incompatible return type, expected " + YELLOW
-        //         + "\'" + dec.name + "\'" + RESET + dec.lineToString());
-        // isValid = false;
+    public static void invalidConditionType(Exp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Invalid condition type" + exp.lineToString());
+        isValid = false;
     }
 
     public static boolean getIsValid() {

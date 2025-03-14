@@ -3,7 +3,6 @@ package absyn;
 import java.io.*;
 import java.util.*;
 
-// TODO: add dummy types for int and bool for operation expression comparisons  
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
@@ -250,6 +249,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(IfExp exp, int level) {
         exp.test.accept(this, level);
+
+        if (exp.test.expType == NameTy.VOID) {
+            Error.invalidConditionType(exp);
+        }
+
         step(level, "Entering a new if block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the if block");
@@ -264,6 +268,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(WhileExp exp, int level) {
         exp.test.accept(this, level);
+
+        if (exp.test.expType == NameTy.VOID) {
+            Error.invalidConditionType(exp);
+        }
+
         step(level, "Entering a new while block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the while block");
@@ -271,37 +280,21 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(AssignExp exp, int level) {
-        exp.left.accept(this, level);
-        System.out.println("Line number " + (exp.row + 1) + " " + exp.right.expType);
+        VarExp left = exp.left;
+        Exp right = exp.right;
+        left.accept(this, level);
+        right.accept(this, level);
+        if (left.expType != right.expType) {
+            Error.invalidAssignExpression(exp);
+        }
     }
 
     @Override
     public void visit(ReturnExp exp, int level) {
-        // TODO: Add type based on expression instance.
-        exp.expType = currentFunction.type.type;
         exp.exp.accept(this, level);
-
-        // check if the types match;
-        // 
-        // switch (currentFunction.type.type) {
-        //     case NameTy.BOOL:
-        //         if (!(exp.exp instanceof BoolExp)) {
-        //             error("incompatible types when returning type" + "where 'boolean' was expected");
-        //         }
-        //         break;
-        //     case NameTy.INT:
-        //         if (!(exp.exp instanceof IntExp)) {
-        //             error("incompatible types when returning type" + "where 'integer' was expected");
-        //         }
-        //         break;
-        //     case NameTy.VOID:
-        //         if (!(exp.exp instanceof NilExp)) {
-        //             error("incompatible types when returning type" + "where 'void' was expected");
-        //         }
-        //         break;
-        //     default:
-        //         break;
-        // }
+        if (currentFunction.type.type != exp.exp.expType) {
+            Error.invalidReturnType(exp, currentFunction.type);
+        }
     }
 
     @Override
@@ -324,7 +317,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(NameTy type, int level) {
-
     }
 
     @Override
