@@ -12,7 +12,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     private static final StringBuilder tableBuilder = new StringBuilder();
     private static final int INDENT = 4;
 
-    private boolean isValid = true;
     private FunctionDec currentFunction;
 
     private static void error(String message) {
@@ -88,7 +87,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 writer.println(errorBuilder.toString());
             }
         }
-        return isValid;
+        return Error.getIsValid();
     }
 
     public void addPredefinedFunctions() {
