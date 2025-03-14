@@ -10,6 +10,7 @@ public class BoolExp extends Exp {
         this.expType = NameTy.BOOL;
     }
 
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }

@@ -191,7 +191,36 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(OpExp exp, int level) {
+        Exp left = exp.left, right = exp.right;
+        left.accept(this, level);
+        right.accept(this, level);
 
+        switch (exp.expType) {
+            case OpExp.isRelationalOperation -> {
+                exp.expType = NameTy.BOOL;
+                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
+                    Error.invalidRelationalOperation(exp);
+                }
+            }
+            case OpExp.isArithmeticOperation -> {
+                exp.expType = NameTy.INT;
+                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
+                    Error.invalidArithmeticOperation(exp);
+                }
+            }
+            case OpExp.isBooleanOperation -> {
+                exp.expType = NameTy.BOOL;
+                if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
+                    if (!(left.expType == NameTy.VOID && right.expType != NameTy.VOID)) {
+                        Error.invalidBooleanOperation(exp);
+                    }
+                }
+            }
+            default -> {
+                System.err.println("");
+            }
+
+        }
     }
 
     @Override
@@ -210,16 +239,16 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
         exp.expType = variable.dec.type.type;
-        // if the var type is indexvar, then we need to check the expression type for the index
+        exp._var.accept(this, level);
     }
 
     @Override
     public void visit(BoolExp exp, int level) {
-
     }
 
     @Override
     public void visit(IfExp exp, int level) {
+        exp.test.accept(this, level);
         step(level, "Entering a new if block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the if block");
@@ -233,6 +262,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(WhileExp exp, int level) {
+        exp.test.accept(this, level);
         step(level, "Entering a new while block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the while block");
@@ -246,38 +276,48 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(ReturnExp exp, int level) {
         // TODO: Add type based on expression instance.
+        exp.expType = currentFunction.type.type;
+        exp.exp.accept(this, level);
 
-        switch (currentFunction.type.type) {
-            case NameTy.BOOL:
-                if (!(exp.exp instanceof BoolExp)) {
-                    error("incompatible types when returning type" + "where 'boolean' was expected");
-                }
-                break;
-            case NameTy.INT:
-                if (!(exp.exp instanceof IntExp)) {
-                    error("incompatible types when returning type" + "where 'integer' was expected");
-                }
-                break;
-            case NameTy.VOID:
-                if (!(exp.exp instanceof NilExp)) {
-                    error("incompatible types when returning type" + "where 'void' was expected");
-                }
-                break;
-            default:
-                break;
-        }
+        // check if the types match;
+        // 
+        // switch (currentFunction.type.type) {
+        //     case NameTy.BOOL:
+        //         if (!(exp.exp instanceof BoolExp)) {
+        //             error("incompatible types when returning type" + "where 'boolean' was expected");
+        //         }
+        //         break;
+        //     case NameTy.INT:
+        //         if (!(exp.exp instanceof IntExp)) {
+        //             error("incompatible types when returning type" + "where 'integer' was expected");
+        //         }
+        //         break;
+        //     case NameTy.VOID:
+        //         if (!(exp.exp instanceof NilExp)) {
+        //             error("incompatible types when returning type" + "where 'void' was expected");
+        //         }
+        //         break;
+        //     default:
+        //         break;
+        // }
     }
 
     @Override
     public void visit(CallExp exp, int level) {
-        var functionName = exp.func;
-        var node = lookup(functionName);
+        String functionName = exp.func;
+        NodeType node = lookup(functionName);
 
         if (node == null) {
             Error.functionDoesNotExit(exp);
+            return;
         }
 
+        exp.expType = node.dec.type.type;
         // TODO: Check parameters
+        // if (!functionDec.params.toString().equals(dec.params.toString())) {
+        //     Error.prototypeRedefinition(dec);
+        // }
+
     }
 
     @Override
@@ -297,7 +337,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level) {
-
+        // if the var type is indexvar, then we need to check the expression type for the index
     }
 
     @Override

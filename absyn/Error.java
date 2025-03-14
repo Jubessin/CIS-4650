@@ -39,6 +39,24 @@ public class Error {
         isValid = false;
     }
 
+    public static void invalidRelationalOperation(OpExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Type mismatch for relational operation " + YELLOW
+                + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
+    public static void invalidArithmeticOperation(OpExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Type mismatch for arithmetic operation " + YELLOW
+                + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
+    public static void invalidBooleanOperation(OpExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Type mismatch for boolean operation " + YELLOW
+                + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
     public static void invalidReturnType(ReturnExp exp) {
         // System.err.println(RED + "ERROR: " + RESET + "Incompatible return type, expected " + YELLOW
         //         + "\'" + dec.name + "\'" + RESET + dec.lineToString());
