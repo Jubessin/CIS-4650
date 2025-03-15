@@ -143,12 +143,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             exp.decs.accept(this, level);
         }
 
-        ExpList iter = new ExpList(exp.exps.head, exp.exps.tail);
-        while (iter != null) {
-            if (iter.head != null) {
-                iter.head.accept(this, level);
-            }
-            iter = iter.tail;
+        for (var item : exp.exps.getFlattened()) {
+            item.accept(this, level);
         }
 
         for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
