@@ -1,10 +1,6 @@
 JAVA=java
 JAVAC=javac
 JFLEX=jflex
-
-# Need to uncomment this when running on the server.
-#CUP=cup
-# JFLEX=~/Projects/jflex/bin/jflex
 CLASSPATH=-cp ./modules/java-cup-11b.jar:.
 CUP=$(JAVA) $(CLASSPATH) java_cup.Main
 
@@ -26,4 +22,4 @@ run:
 	java $(CLASSPATH) CM -a $(file)
 
 clean:
-	rm -f parser.java Lexer.java sym.java *.class absyn/*.class *~
+	rm -f parser.java Lexer.java sym.java *.class absyn/*.class tests/*.sym tests/*.abs *~
