@@ -87,25 +87,23 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(DecList list, int level) {
-        print(level, "Entering the global scope:");
+        print(level++, "Entering the global scope:");
 
         addPredefinedFunctions();
-        while (list != null) {
-            if (list.head != null) {
-                list.head.accept(this, level + 1);
-            }
-            list = list.tail;
+
+        for (var item : list.getFlattened()) {
+            item.accept(this, level);
         }
 
         for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
             for (NodeType node : decList.getValue()) {
                 Dec dec = node.dec;
-                print(level + 1, dec.toString());
+                print(level, dec.toString());
             }
         }
 
-        delete(level + 1);
-        print(level, "Leaving the global scope");
+        delete(level);
+        print(--level, "Leaving the global scope");
     }
 
     @Override
@@ -167,12 +165,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(VarDecList list, int level) {
-        VarDecList iter = new VarDecList(list.head, list.tail);
-        while (iter != null) {
-            if (iter.head != null) {
-                iter.head.accept(this, level);
-            }
-            iter = iter.tail;
+        for (var item : list.getFlattened()) {
+            item.accept(this, level);
         }
     }
 
@@ -344,11 +338,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(ExpList list, int level) {
-        while (list != null) {
-            if (list.head != null) {
-                list.head.accept(this, level);
-            }
-            list = list.tail;
+        for (var item : list.getFlattened()) {
+            item.accept(this, level);
         }
     }
 
