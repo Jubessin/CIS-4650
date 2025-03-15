@@ -7,13 +7,12 @@ import java.util.*;
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
-    private static final StringBuilder errorBuilder = new StringBuilder();
     private static final StringBuilder tableBuilder = new StringBuilder();
     private static final int INDENT = 4;
 
     private FunctionDec currentFunction;
 
-    private static void step(int level, String message) {
+    private static void print(int level, String message) {
         indent(level);
         tableBuilder.append(message + "\n");
     }
@@ -72,17 +71,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         tableBuilder.append(" ".repeat(level * INDENT));
     }
 
-    public boolean finish(String file) throws FileNotFoundException, UnsupportedEncodingException {
-        if (file == null) {
-            System.out.println(tableBuilder.toString());
-            System.out.println(errorBuilder.toString());
-        } else {
-            try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
-                writer.println(tableBuilder.toString());
-                writer.println(errorBuilder.toString());
-            }
+    public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        try (var writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
+            writer.println(tableBuilder.toString());
         }
-        return Error.getIsValid();
     }
 
     public void addPredefinedFunctions() {
@@ -95,7 +87,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(DecList list, int level) {
-        step(level, "Entering the global scope:");
+        print(level, "Entering the global scope:");
 
         addPredefinedFunctions();
         while (list != null) {
@@ -108,12 +100,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
             for (NodeType node : decList.getValue()) {
                 Dec dec = node.dec;
-                step(level + 1, dec.toString());
+                print(level + 1, dec.toString());
             }
         }
 
         delete(level + 1);
-        step(level, "Leaving the global scope");
+        print(level, "Leaving the global scope");
     }
 
     @Override
@@ -139,12 +131,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             dec.params.accept(this, level + 1);
         }
 
-        step(level, "Entering the scope for function " + dec.name + ":");
+        print(level, "Entering the scope for function " + dec.name + ":");
 
         dec.body.accept(this, level + 1);
 
         delete(level + 1);
-        step(level, "Leaving the function scope");
+        print(level, "Leaving the function scope");
     }
 
     @Override
@@ -165,7 +157,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             for (NodeType node : list.getValue()) {
                 Dec dec = node.dec;
                 if (node.level == level) {
-                    step(level, dec.toString());
+                    print(level, dec.toString());
                 }
             }
         }
@@ -250,14 +242,14 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             Error.invalidConditionType(exp);
         }
 
-        step(level, "Entering a new if block:");
+        print(level, "Entering a new if block:");
         exp.body.accept(this, level + 1);
-        step(level, "Leaving the if block");
+        print(level, "Leaving the if block");
 
         if (!(exp._else instanceof NilExp)) {
-            step(level, "Entering a new else block:");
+            print(level, "Entering a new else block:");
             exp._else.accept(this, level + 1);
-            step(level, "Leaving the else block");
+            print(level, "Leaving the else block");
         }
     }
 
@@ -269,9 +261,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             Error.invalidConditionType(exp);
         }
 
-        step(level, "Entering a new while block:");
+        print(level, "Entering a new while block:");
         exp.body.accept(this, level + 1);
-        step(level, "Leaving the while block");
+        print(level, "Leaving the while block");
     }
 
     @Override

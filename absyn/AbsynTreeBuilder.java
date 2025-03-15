@@ -7,18 +7,10 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     private static final StringBuilder sb = new StringBuilder();
     private static final int INDENT = 4;
 
-    private boolean isValid = true;
-
-    public boolean finish(String file) throws FileNotFoundException, UnsupportedEncodingException {
-        if (file == null) {
-            System.out.println(sb.toString());
-        } else {
-            try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".abs"), "UTF-8")) {
-                writer.println(sb.toString());
-            }
+    public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        try (var writer = new PrintWriter(file.replace(".cm", ".abs"), "UTF-8")) {
+            writer.println(sb.toString());
         }
-
-        return isValid;
     }
 
     @Override

@@ -6,7 +6,6 @@
 import absyn.*;
 import java.io.*;
 
-// TODO: Update program usage.
 public class CM {
 
     private static String inputFile;
@@ -15,7 +14,8 @@ public class CM {
 
     private static String PROGRAM_USAGE
             = "java -cp <cup_jar_path> CM -a <input_file>"
-            + "\n\t-a             (Optional) Processes and displays the abstract syntax tree for the input file"
+            + "\n\t-a             (Optional) Saves the abstract syntax tree to a file"
+            + "\n\t-s             (Optional) Saves the symbol table to a file"
             + "\n\tinput_file     The file to compile, with the .cm extension";
 
     private static parser createParser(String args[]) throws Exception {
@@ -29,23 +29,19 @@ public class CM {
 
         tree.accept(builder, 0);
 
-        var builderFile = saveSyntaxTree
-                ? inputFile
-                : null;
-
-        if (!builder.finish(builderFile)) {
-            throw new Exception("Failed to build abstract syntax tree.");
+        if (saveSyntaxTree) {
+            builder.serialize(inputFile);
         }
     }
 
     private static void runAnalyzer(Absyn tree) throws Exception {
         var analyzer = new AbsynSemanticAnalyzer();
+        
         tree.accept(analyzer, 0);
 
-        analyzer.finish(saveSymbolTable
-                ? inputFile
-                : null
-        );
+        if (saveSymbolTable) {
+            analyzer.serialize(inputFile);
+        }
     }
 
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
@@ -90,6 +86,9 @@ public class CM {
 
             var parser = createParser(argv);
             var tree = (Absyn) parser.parse().value;
+
+            if (!parser.valid)
+                return;
 
             runBuilder(tree);
             runAnalyzer(tree);
