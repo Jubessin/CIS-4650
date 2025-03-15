@@ -13,9 +13,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     private FunctionDec currentFunction;
 
-    // private static void error(String message) {
-    //     errorBuilder.append("error: " + message + "\n");
-    // }
     private static void step(int level, String message) {
         indent(level);
         tableBuilder.append(message + "\n");
@@ -219,7 +216,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             default -> {
                 System.err.println("");
             }
-
         }
     }
 

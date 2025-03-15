@@ -15,7 +15,6 @@ Lexer.java: cm.flex
 	$(JFLEX) cm.flex
 
 parser.java: cm.cup
-	#$(CUP) -dump -expect 3 cm.cup
 	$(CUP) -expect 3 cm.cup
 
 run:
