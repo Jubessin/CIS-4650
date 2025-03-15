@@ -251,7 +251,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(WhileExp exp, int level) {
         exp.test.accept(this, level);
 
-        if (exp.test.expType == NameTy.VOID) {
+        if (getResolvedType(exp.test) == NameTy.VOID) {
             Error.invalidConditionType(exp);
         }
 
@@ -264,9 +264,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(AssignExp exp, int level) {
         VarExp left = exp.left;
         Exp right = exp.right;
+
         left.accept(this, level);
         right.accept(this, level);
-        if (left.expType != right.expType) {
+
+        if (getResolvedType(left) != getResolvedType(right)) {
             Error.invalidAssignExpression(exp);
         }
     }
