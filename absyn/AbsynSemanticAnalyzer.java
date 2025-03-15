@@ -344,9 +344,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level) {
-        // if the var type is indexvar, then we need to check the expression type for the index
         var.exp.accept(this, level);
-        if (var.exp.expType != NameTy.INT) {
+        if (getResolvedType(var.exp) != NameTy.INT) {
             Error.invalidIndexType(var);
         }
     }
