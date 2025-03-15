@@ -3,56 +3,58 @@ package absyn;
 import java.io.*;
 import java.util.*;
 
-// TODO: add dummy types for int and bool for operation expression comparisons  
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
+
     private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
     private static final StringBuilder errorBuilder = new StringBuilder();
     private static final StringBuilder tableBuilder = new StringBuilder();
     private static final int INDENT = 4;
 
-    private boolean isValid = true;
     private FunctionDec currentFunction;
 
-    private static void error(String message) {
-        errorBuilder.append("error: " + message + "\n");
-    }
-
+    // private static void error(String message) {
+    //     errorBuilder.append("error: " + message + "\n");
+    // }
     private static void step(int level, String message) {
         indent(level);
         tableBuilder.append(message + "\n");
     }
 
     private static void insert(Dec dec, int level) {
+        if (lookup(dec.name) != null && lookup(dec.name).level == level) {
+            Error.variableRedefinition(dec);
+            return;
+        }
         ArrayList<NodeType> list = table.getOrDefault(dec.name, null);
         if (list == null) {
             table.put(dec.name, new ArrayList<>());
         }
+
         list = table.getOrDefault(dec.name, null);
         list.add(new NodeType(dec.name, dec, level));
     }
 
+    // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
-        var node = lookup(dec.name);
+        NodeType node = lookup(dec.name);
 
         if (node != null) {
-            var _dec = (FunctionDec)node.dec;
+            FunctionDec functionDec = (FunctionDec) node.dec;
 
-            if (!_dec.params.toString().equals(dec.params.toString())) {
-                error("redefinition of " + "'" + dec.name + "'");
+            if (!functionDec.params.toString().equals(dec.params.toString())) {
+                Error.prototypeRedefinition(dec);
             }
 
-            if (!_dec.isPrototype && !dec.isPrototype) {
-                error("redefinition of " + "'" + dec.name + "'");
+            if (!functionDec.isPrototype && !dec.isPrototype) {
+                Error.functionRedefinition(dec);
             }
 
-            var _node = table.get(dec.name).get(0);
-
-            _node.dec = dec;
+            node.dec = dec;
             return;
         }
 
-        insert((Dec)dec, level);
+        insert((Dec) dec, level);
     }
 
     private static NodeType lookup(String id) {
@@ -83,14 +85,22 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 writer.println(errorBuilder.toString());
             }
         }
+        return Error.getIsValid();
+    }
 
-        return isValid;
+    public void addPredefinedFunctions() {
+        NameTy nameType = new NameTy(-1, -1, NameTy.INT);
+        FunctionDec input = new FunctionDec(-1, -1, nameType, "input", null, new NilExp(-1, -1)),
+                output = new FunctionDec(-1, -1, nameType, "output", null, new NilExp(-1, -1));
+        insert(input, 1);
+        insert(output, 1);
     }
 
     @Override
     public void visit(DecList list, int level) {
         step(level, "Entering the global scope:");
 
+        addPredefinedFunctions();
         while (list != null) {
             if (list.head != null) {
                 list.head.accept(this, level + 1);
@@ -127,7 +137,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         if (dec.body instanceof NilExp) {
             return;
         }
-        
+
         if (dec.params != null) {
             dec.params.accept(this, level + 1);
         }
@@ -179,31 +189,71 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(OpExp exp, int level) {
+        Exp left = exp.left, right = exp.right;
+        left.accept(this, level);
+        right.accept(this, level);
 
+        switch (exp.operationType) {
+            case OpExp.isRelationalOperation -> {
+                exp.expType = NameTy.BOOL;
+                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
+                    Error.invalidRelationalOperation(exp);
+                }
+            }
+            case OpExp.isArithmeticOperation -> {
+                // need to implement unary
+                exp.expType = NameTy.INT;
+                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
+                    Error.invalidArithmeticOperation(exp);
+                }
+            }
+            case OpExp.isBooleanOperation -> {
+                // might need to change later
+                exp.expType = NameTy.BOOL;
+                if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
+                    if (!(left.expType == NameTy.VOID && right.expType != NameTy.VOID)) {
+                        Error.invalidBooleanOperation(exp);
+                    }
+                }
+            }
+            default -> {
+                System.err.println("");
+            }
+
+        }
     }
 
     @Override
     public void visit(IntExp exp, int level) {
-
     }
 
     @Override
     public void visit(NilExp exp, int level) {
-
     }
 
     @Override
     public void visit(VarExp exp, int level) {
-
+        NodeType variable = lookup(exp._var.name);
+        if (variable == null) {
+            Error.variableDoesNotExist(exp);
+            return;
+        }
+        exp.expType = variable.dec.type.type;
+        exp._var.accept(this, level);
     }
 
     @Override
     public void visit(BoolExp exp, int level) {
-
     }
 
     @Override
     public void visit(IfExp exp, int level) {
+        exp.test.accept(this, level);
+
+        if (exp.test.expType == NameTy.VOID) {
+            Error.invalidConditionType(exp);
+        }
+
         step(level, "Entering a new if block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the if block");
@@ -217,6 +267,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(WhileExp exp, int level) {
+        exp.test.accept(this, level);
+
+        if (exp.test.expType == NameTy.VOID) {
+            Error.invalidConditionType(exp);
+        }
+
         step(level, "Entering a new while block:");
         exp.body.accept(this, level + 1);
         step(level, "Leaving the while block");
@@ -224,48 +280,43 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(AssignExp exp, int level) {
-
+        VarExp left = exp.left;
+        Exp right = exp.right;
+        left.accept(this, level);
+        right.accept(this, level);
+        if (left.expType != right.expType) {
+            Error.invalidAssignExpression(exp);
+        }
     }
 
     @Override
     public void visit(ReturnExp exp, int level) {
-        // TODO: Add type based on expression instance.
-        
-        switch (currentFunction.type.type) {
-            case NameTy.BOOL:
-                if (!(exp.exp instanceof BoolExp)) {
-                    error("incompatible types when returning type" + "where 'boolean' was expected");
-                }
-                break;
-            case NameTy.INT:
-                if (!(exp.exp instanceof IntExp)) {
-                    error("incompatible types when returning type" + "where 'integer' was expected");
-                }
-                break;
-            case NameTy.VOID:
-                if (!(exp.exp instanceof NilExp)) {
-                    error("incompatible types when returning type" + "where 'void' was expected");
-                }
-                break;
-            default: break;
+        exp.exp.accept(this, level);
+        if (currentFunction.type.type != exp.exp.expType) {
+            Error.invalidReturnType(exp, currentFunction.type);
         }
     }
 
     @Override
     public void visit(CallExp exp, int level) {
-        var functionName = exp.func;
-        var node = lookup(functionName);
+        String functionName = exp.func;
+        NodeType node = lookup(functionName);
 
         if (node == null) {
-            error("'" + functionName + "' identifier not found");
+            Error.functionDoesNotExit(exp);
+            return;
         }
 
+        exp.expType = node.dec.type.type;
         // TODO: Check parameters
+        // if (!functionDec.params.toString().equals(dec.params.toString())) {
+        //     Error.prototypeRedefinition(dec);
+        // }
+
     }
 
     @Override
     public void visit(NameTy type, int level) {
-
     }
 
     @Override
@@ -280,7 +331,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level) {
-
+        // if the var type is indexvar, then we need to check the expression type for the index
+        var.exp.accept(this, level);
+        if (var.exp.expType != NameTy.INT) {
+            Error.invalidIndexType(var);
+        }
     }
 
     @Override

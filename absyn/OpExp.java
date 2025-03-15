@@ -1,9 +1,14 @@
 package absyn;
 
 public class OpExp extends Exp {
+
     public int op;
     public Exp left;
     public Exp right;
+    public int operationType;
+    public static final int isRelationalOperation = 0;
+    public static final int isBooleanOperation = 1;
+    public static final int isArithmeticOperation = 2;
 
     public static final int PLUS = 1;
     public static final int MINUS = 2;
@@ -25,8 +30,71 @@ public class OpExp extends Exp {
         this.op = op;
         this.left = left;
         this.right = right;
+        this.operationType = setOperationType();
     }
 
+    private int setOperationType() {
+        if (op >= NOT && op <= OR) {
+            return isBooleanOperation;
+        } else if (op >= PLUS && op <= DIVIDE) {
+            return isArithmeticOperation;
+        } else {
+            return isRelationalOperation;
+        }
+    }
+
+    @Override
+    public String toString() {
+        switch (op) {
+            case PLUS -> {
+                return "+";
+            }
+            case MINUS -> {
+                return "-";
+            }
+            case UMINUS -> {
+                return "~";
+            }
+            case MULTIPLY -> {
+                return "*";
+            }
+            case DIVIDE -> {
+                return "/";
+            }
+            case EQ -> {
+                return "==";
+            }
+            case NE -> {
+                return "!=";
+            }
+            case LT -> {
+                return "<";
+            }
+            case LE -> {
+                return "<=";
+            }
+            case GT -> {
+                return ">";
+            }
+            case GE -> {
+                return ">=";
+            }
+            case NOT -> {
+                return "!";
+            }
+            case AND -> {
+                return "&&";
+            }
+            case OR -> {
+                return "||";
+            }
+            default -> {
+                return "";
+            }
+        }
+    }
+
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }

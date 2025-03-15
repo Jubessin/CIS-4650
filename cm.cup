@@ -29,7 +29,7 @@ parser code {:
             if (s.left >= 0) {                
                 /* Add to the end of the StringBuffer error message
                    the line number of the error in the input. */
-                m.append(" in line "+(s.left+1));   
+                m.append(" at line "+(s.left+1));   
                 /* Check if the column number in the input is greater
                    or equal to zero. */
                 if (s.right >= 0)                    

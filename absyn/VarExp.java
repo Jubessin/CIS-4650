@@ -1,6 +1,7 @@
 package absyn;
 
 public class VarExp extends Exp {
+
     public Var _var;
 
     public VarExp(int row, int col, Var _var) {
@@ -8,6 +9,7 @@ public class VarExp extends Exp {
         this._var = _var;
     }
 
+    @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }
