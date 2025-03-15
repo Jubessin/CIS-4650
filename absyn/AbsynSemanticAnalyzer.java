@@ -280,7 +280,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(ReturnExp exp, int level) {
         exp.exp.accept(this, level);
-        if (currentFunction.type.type != exp.exp.expType) {
+        if (currentFunction.type.type != getResolvedType(exp.exp)) {
             Error.invalidReturnType(exp, currentFunction.type);
         }
     }
@@ -307,10 +307,20 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
+        var callParameterList = exp.args;
         var functionDec = (FunctionDec)node.dec;
+        var functionParameterList = functionDec.params;
 
-        var arguments = exp.args.getFlattened();
-        var parameters = functionDec.params.getFlattened();
+        if (callParameterList == null && functionParameterList == null)
+            return;
+
+        if (callParameterList == null || functionParameterList == null) {
+            Error.invalidCallArgumentType(exp);
+            return;
+        }
+
+        var arguments = callParameterList.getFlattened();
+        var parameters = functionParameterList.getFlattened();
 
         if (arguments.size() != parameters.size()) {
             Error.invalidCallArgumentCount(exp);
