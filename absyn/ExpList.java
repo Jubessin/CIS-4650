@@ -1,6 +1,6 @@
 package absyn;
 
-public class ExpList extends Absyn {
+public class ExpList extends AbsynList<Exp> {
 
     public Exp head;
     public ExpList tail;
@@ -13,5 +13,15 @@ public class ExpList extends Absyn {
     @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
+    }
+    
+    @Override
+    public Exp getHead() {
+        return head;
+    }
+
+    @Override
+    public AbsynList<Exp> getTail() {
+        return tail;
     }
 }

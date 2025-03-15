@@ -1,6 +1,6 @@
 package absyn;
 
-public class CallExp extends Exp {
+public class CallExp extends Exp implements ResolvableExp {
 
     public String func;
     public ExpList args;
@@ -14,5 +14,10 @@ public class CallExp extends Exp {
     @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
+    }
+
+    @Override
+    public String getResolvedName() {
+        return func;
     }
 }

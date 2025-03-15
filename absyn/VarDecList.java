@@ -1,6 +1,6 @@
 package absyn;
 
-public class VarDecList extends Absyn {
+public class VarDecList extends AbsynList<VarDec> {
 
     public VarDec head;
     public VarDecList tail;
@@ -26,5 +26,15 @@ public class VarDecList extends Absyn {
             iter = iter.tail;
         }
         return paramString.substring(0, paramString.length() - 1);
+    }
+
+    @Override
+    public VarDec getHead() {
+        return head;
+    }
+
+    @Override
+    public AbsynList<VarDec> getTail() {
+        return tail;
     }
 }

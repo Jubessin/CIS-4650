@@ -1,6 +1,6 @@
 package absyn;
 
-public class VarExp extends Exp {
+public class VarExp extends Exp implements ResolvableExp {
 
     public Var _var;
 
@@ -12,5 +12,10 @@ public class VarExp extends Exp {
     @Override
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
+    }
+
+    @Override 
+    public String getResolvedName() {
+        return _var.name;
     }
 }

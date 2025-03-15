@@ -285,6 +285,18 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
     }
 
+    private static int getResolvedType(Exp exp) {
+        if (exp instanceof ResolvableExp) {
+            var _exp = ((ResolvableExp)exp);
+
+            var node = lookup(_exp.getResolvedName());
+
+            return node.dec.type.type;
+        }
+
+        return exp.expType;        
+    }
+
     @Override
     public void visit(CallExp exp, int level) {
         String functionName = exp.func;
@@ -295,12 +307,25 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        exp.expType = node.dec.type.type;
-        // TODO: Check parameters
-        // if (!functionDec.params.toString().equals(dec.params.toString())) {
-        //     Error.prototypeRedefinition(dec);
-        // }
+        var functionDec = (FunctionDec)node.dec;
 
+        var arguments = exp.args.getFlattened();
+        var parameters = functionDec.params.getFlattened();
+
+        if (arguments.size() != parameters.size()) {
+            Error.invalidCallArgumentCount(exp);
+            return;
+        }
+
+        for (int i = 0; i < arguments.size(); ++i) {
+            var arg = arguments.get(i);
+            var param = parameters.get(i);
+
+            if (getResolvedType(arg) != param.type.type) {
+                Error.invalidCallArgumentType(exp);
+                return;
+            }
+        }
     }
 
     @Override

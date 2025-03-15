@@ -83,6 +83,18 @@ public class Error {
         isValid = false;
     }
 
+    public static void invalidCallArgumentCount(CallExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Invalid number of arguments for call to function " + YELLOW
+                + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
+    public static void invalidCallArgumentType(CallExp exp) {
+        System.err.println(RED + "ERROR: " + RESET + "Type mismatch for call to function " + YELLOW
+                + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
     public static boolean getIsValid() {
         return isValid;
     }
