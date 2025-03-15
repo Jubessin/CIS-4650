@@ -344,6 +344,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level) {
+        // TODO: check out of bounds
         var.exp.accept(this, level);
         if (getResolvedType(var.exp) != NameTy.INT) {
             Error.invalidIndexType(var);
