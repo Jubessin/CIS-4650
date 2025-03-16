@@ -23,7 +23,11 @@ public class VarDecList extends AbsynList<VarDec> {
         List<VarDec> list = this.getFlattened();
 
         for (VarDec dec : list) {
-            paramString += dec.type.toString() + ", ";
+            paramString += dec.type.toString();
+            if (dec instanceof ArrayDec) {
+                paramString += "[]";
+            }
+            paramString += ", ";
         }
         return paramString.substring(0, paramString.length() - 2);
     }

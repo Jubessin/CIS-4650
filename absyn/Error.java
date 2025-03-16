@@ -65,6 +65,14 @@ public class Error {
         isValid = false;
     }
 
+    public static void functionPrototypeOnly(CallExp exp) {
+        if (printError) {
+            System.err.println(RED + "ERROR: " + RESET + "The function " + YELLOW
+                    + "\'" + exp.func + "\'" + RESET + ", has no function definition" + exp.lineToString());
+        }
+        isValid = false;
+    }
+
     public static void invalidRelationalOperation(OpExp exp) {
         if (printError) {
             System.err.println(RED + "ERROR: " + RESET + "Type mismatch for relational operation " + YELLOW
@@ -127,15 +135,6 @@ public class Error {
             System.err.println(RED + "ERROR: " + RESET + "Argument mismatch for call to function " + YELLOW
                     + "\'" + exp.func + "\'" + RESET + ", expected " + GREEN + "\'(" + paramString + ")\'" + RESET
                     + ", but received " + GREEN + "\'(" + expString + ")\'" + RESET + exp.lineToString());
-        }
-        isValid = false;
-    }
-
-    public static void indexOutOfBounds(IndexVar var, int size) {
-        if (printError) {
-            System.err.println(RED + "ERROR: " + RESET + "Index out of bounds for array of size " + size + ": "
-                    + YELLOW + "\'" + var.name + "\'" + RESET + var.lineToString()
-            );
         }
         isValid = false;
     }

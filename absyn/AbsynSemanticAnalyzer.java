@@ -53,6 +53,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     private static NodeType lookup(String id) {
         ArrayList<NodeType> list = table.getOrDefault(id, null);
         if (list != null) {
+            if (list.isEmpty()) {
+                table.remove(id);
+                return null;
+            }
             return list.get(list.size() - 1);
         }
         return null;
@@ -80,6 +84,24 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 output = new FunctionDec(-1, -1, nameType, "output", null, new NilExp(-1, -1));
         insert(input, 1);
         insert(output, 1);
+    }
+
+    public String expListToString(ExpList list, int level) {
+        Error.printError = false;
+        String expString = "";
+        List<Exp> flatList = list.getFlattened();
+
+        for (Exp exp : flatList) {
+            exp.accept(this, level);
+            expString += NameTy.getString(exp.expType);
+            if (exp instanceof VarExp && ((VarExp) exp).isArray) {
+                expString += "[]";
+            }
+
+            expString += ", ";
+        }
+        Error.printError = true;
+        return expString.substring(0, expString.length() - 2);
     }
 
     @Override
@@ -222,6 +244,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             Error.variableDoesNotExist(exp);
             return;
         }
+
+        if (variable.dec instanceof ArrayDec) {
+            exp.isArray = true;
+        }
         exp.expType = variable.dec.type.type;
         exp._var.accept(this, level);
     }
@@ -295,39 +321,28 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
         ExpList callParameterList = exp.args;
         FunctionDec functionDec = (FunctionDec) node.dec;
-        VarDecList functionParameterList = functionDec.params;
+        String paramString = functionDec.params == null ? "" : functionDec.params.toString();
+        String argString = callParameterList == null ? "" : expListToString(callParameterList, level);
         exp.expType = functionDec.type.type;
 
-        if (callParameterList == null && functionParameterList == null) {
-            return;
+        if (functionDec.isPrototype) {
+            Error.functionPrototypeOnly(exp);
         }
 
-        if (callParameterList == null || functionParameterList == null) {
-            Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
-            return;
+        if (!paramString.equals(argString)) {
+            Error.invalidCallArgumentType(exp, argString, paramString);
+
         }
 
-        List<VarDec> parameters = functionParameterList.getFlattened();
-        List<Exp> arguments = callParameterList.getFlattened();
-
-        int parameterCount = parameters.size();
-        int argumentCount = arguments.size();
-
-        if (parameterCount != argumentCount) {
-            Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
-            return;
-        }
-
-        for (int i = 0; i < parameterCount; ++i) {
-            VarDec param = parameters.get(i);
-            Exp arg = arguments.get(i);
-            arg.accept(this, level);
-
-            if (arg.expType != param.type.type) {
-                Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
-                return;
-            }
-        }
+        // for (int i = 0; i < parameterCount; ++i) {
+        //     VarDec param = parameters.get(i);
+        //     Exp arg = arguments.get(i);
+        //     arg.accept(this, level);
+        //     if (arg.expType != param.type.type) {
+        //         Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
+        //         return;
+        //     }
+        // }
     }
 
     @Override
@@ -343,17 +358,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level) {
-        NodeType node = lookup(var.name);
-        ArrayDec variable = (ArrayDec) node.dec;
         var.exp.accept(this, level);
         if (var.exp.expType != NameTy.INT) {
             Error.invalidIndexType(var);
-        }
-
-        if (var.exp instanceof IntExp exp) {
-            if (exp.value >= variable.size) {
-                Error.indexOutOfBounds(var, variable.size);
-            }
         }
     }
 

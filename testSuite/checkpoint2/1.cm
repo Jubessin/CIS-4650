@@ -7,6 +7,10 @@
 int _integer;
 bool _boolean;
 
+int arrayFunction(int array[]) {
+    return 2;
+}
+
 bool _isPositive(int value);
 
 bool _isPositive(int value) 
@@ -16,8 +20,8 @@ bool _isPositive(int value)
 
 int getInt(void) {
     int a[2];
-    a[0] = 5;
-    return a[0];
+    a[0] = 1;
+    return arrayFunction(a);
 }
 
 void main(void) {
