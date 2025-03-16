@@ -14,6 +14,11 @@ After building, the compiler can be used with the following command:
 
 `java -cp /usr/share/java/cup.jar:. CM <file.cm>`
 
+### Flags
+
+- '-a' (optional): Saves the abstract syntax tree to a file.
+- '-s' (optional): Saves the symbol table to a file.
+
 ## Tests
 
 The compiler is bundled with 5 test files stored under `./tests`.
