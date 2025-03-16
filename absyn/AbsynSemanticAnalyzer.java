@@ -19,7 +19,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     private static void insert(Dec dec, int level) {
         if (lookup(dec.name) != null && lookup(dec.name).level == level) {
-            Error.variableRedefinition(dec);
+            Error.variableRedeclaration(dec);
             return;
         }
         ArrayList<NodeType> list = table.getOrDefault(dec.name, null);
@@ -33,11 +33,20 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
+        if (dec.name.equals("output") || dec.name.equals("input")) {
+            Error.redefinePredefinedFunction(dec);
+            return;
+        }
         NodeType node = lookup(dec.name);
         if (node != null) {
             FunctionDec functionDec = (FunctionDec) node.dec;
+            String paramString = functionDec.params == null ? "" : functionDec.params.toString();
+            String decString = dec.params == null ? "" : dec.params.toString();
 
-            if (!functionDec.params.toString().equals(dec.params.toString())) {
+            if (functionDec.type.type != dec.type.type) {
+                Error.prototypeRedefinition(dec);
+            }
+            if (!paramString.equals(decString)) {
                 Error.prototypeRedefinition(dec);
             }
             if (!functionDec.isPrototype && !dec.isPrototype) {
@@ -78,14 +87,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
     }
 
-    public void addPredefinedFunctions() {
-        NameTy nameType = new NameTy(-1, -1, NameTy.INT);
-        FunctionDec input = new FunctionDec(-1, -1, nameType, "input", null, new NilExp(-1, -1)),
-                output = new FunctionDec(-1, -1, nameType, "output", null, new NilExp(-1, -1));
-        insert(input, 1);
-        insert(output, 1);
-    }
-
     public String expListToString(ExpList list, int level) {
         Error.printError = false;
         String expString = "";
@@ -94,10 +95,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         for (Exp exp : flatList) {
             exp.accept(this, level);
             expString += NameTy.getString(exp.expType);
-            if (exp instanceof VarExp && ((VarExp) exp).isArray) {
-                expString += "[]";
-            }
-
+            expString += isArrayExp(exp) ? "[]" : "";
             expString += ", ";
         }
         Error.printError = true;
@@ -107,7 +105,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(DecList list, int level) {
         print(level++, "Entering the global scope:");
-        addPredefinedFunctions();
 
         for (Dec item : list.getFlattened()) {
             item.accept(this, level);
@@ -194,6 +191,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
     }
 
+    public boolean isArrayExp(Exp exp) {
+        return exp instanceof VarExp && ((VarExp) exp).isArray;
+    }
+
     @Override
     public void visit(OpExp exp, int level) {
         Exp left = exp.left, right = exp.right;
@@ -209,8 +210,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             }
             case OpExp.isArithmeticOperation -> {
                 // need to implement unary
+                boolean typeMismatch;
                 exp.expType = NameTy.INT;
-                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
+
+                typeMismatch = (left.expType != NameTy.INT || right.expType != NameTy.INT)
+                        || (isArrayExp(left) || isArrayExp(right));
+                if (typeMismatch) {
                     Error.invalidArithmeticOperation(exp);
                 }
             }
@@ -245,7 +250,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        if (variable.dec instanceof ArrayDec) {
+        if (variable.dec instanceof ArrayDec && exp._var instanceof SimpleVar) {
             exp.isArray = true;
         }
         exp.expType = variable.dec.type.type;
@@ -314,6 +319,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         String functionName = exp.func;
         NodeType node = lookup(functionName);
 
+        if (functionName.equals("output") || functionName.equals("input")) {
+            Error.callPredefinedFunction(exp);
+            return;
+        }
         if (node == null) {
             Error.functionDoesNotExit(exp);
             return;

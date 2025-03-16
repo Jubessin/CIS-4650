@@ -25,6 +25,22 @@ public class Error {
         isValid = false;
     }
 
+    public static void callPredefinedFunction(CallExp exp) {
+        if (printError) {
+            System.err.println(RED + "ERROR: " + RESET + "Calling a predefined function " + YELLOW
+                    + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+        }
+        isValid = false;
+    }
+
+    public static void redefinePredefinedFunction(FunctionDec dec) {
+        if (printError) {
+            System.err.println(RED + "ERROR: " + RESET + "Redefining predefined function " + YELLOW
+                    + "\'" + dec.name + "\'" + RESET + dec.lineToString());
+        }
+        isValid = false;
+    }
+
     public static void functionRedefinition(FunctionDec dec) {
         if (printError) {
             System.err.println(RED + "ERROR: " + RESET + "Redefinition of " + YELLOW
@@ -41,9 +57,9 @@ public class Error {
         isValid = false;
     }
 
-    public static void variableRedefinition(Dec dec) {
+    public static void variableRedeclaration(Dec dec) {
         if (printError) {
-            System.err.println(RED + "ERROR: " + RESET + "Redefinition of " + YELLOW
+            System.err.println(RED + "ERROR: " + RESET + "Redeclaration of " + YELLOW
                     + "\'" + dec.name + "\'" + RESET + dec.lineToString());
         }
         isValid = false;
@@ -78,7 +94,14 @@ public class Error {
             System.err.println(RED + "ERROR: " + RESET + "Type mismatch for relational operation " + YELLOW
                     + "\'" + exp.toString() + "\'" + RESET + exp.lineToString());
         }
-        // System.out.println(exp.left.expType + " " + exp.right.expType);
+        isValid = false;
+    }
+
+    public static void invalidArraySize(ArrayDec dec) {
+        if (printError) {
+            System.err.println(RED + "ERROR: " + RESET + "Invalid array size for " + YELLOW
+                    + "\'" + dec.name + "\'" + RESET + dec.lineToString());
+        }
         isValid = false;
     }
 
