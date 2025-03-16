@@ -1,6 +1,7 @@
 package absyn;
 
 public class DecList extends AbsynList<Dec> {
+
     public Dec head;
     public DecList tail;
 
@@ -19,6 +20,7 @@ public class DecList extends AbsynList<Dec> {
         return head;
     }
 
+    @Override
     public AbsynList<Dec> getTail() {
         return tail;
     }

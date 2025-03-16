@@ -15,7 +15,9 @@ bool _isPositive(int value)
 }
 
 int getInt(void) {
-    return 1;
+    int a[2];
+    a[0] = 5;
+    return a[0];
 }
 
 void main(void) {
