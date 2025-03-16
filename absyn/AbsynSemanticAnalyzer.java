@@ -106,7 +106,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(SimpleDec dec, int level) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
-
             dec.type.type = NameTy.INT;
         }
 
@@ -117,7 +116,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(ArrayDec dec, int level) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
-
             dec.type.type = NameTy.INT;
         }
 
