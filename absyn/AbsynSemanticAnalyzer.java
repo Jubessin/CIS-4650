@@ -124,7 +124,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
             dec.type.type = NameTy.INT;
         }
-        
+
         insert(dec, level);
     }
 
@@ -259,7 +259,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(WhileExp exp, int level) {
         exp.test.accept(this, level);
 
-        if (getResolvedType(exp.test) == NameTy.VOID) {
+        if (exp.test.expType == NameTy.VOID) {
             Error.invalidConditionType(exp);
         }
 
@@ -276,7 +276,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         left.accept(this, level);
         right.accept(this, level);
 
-        if (getResolvedType(left) != getResolvedType(right)) {
+        if (left.expType != right.expType) {
             Error.invalidAssignExpression(exp);
         }
     }
@@ -284,21 +284,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(ReturnExp exp, int level) {
         exp.exp.accept(this, level);
-        if (currentFunction.type.type != getResolvedType(exp.exp)) {
+        if (currentFunction.type.type != exp.exp.expType) {
             Error.invalidReturnType(exp, currentFunction.type);
         }
-    }
-
-    private static int getResolvedType(Exp exp) {
-        if (exp instanceof ResolvableExp) {
-            var _exp = ((ResolvableExp)exp);
-
-            var node = lookup(_exp.getResolvedName());
-
-            return node.dec.type.type;
-        }
-
-        return exp.expType;        
     }
 
     @Override
@@ -312,11 +300,13 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
 
         var callParameterList = exp.args;
-        var functionDec = (FunctionDec)node.dec;
+        var functionDec = (FunctionDec) node.dec;
         var functionParameterList = functionDec.params;
+        exp.expType = functionDec.type.type;
 
-        if (callParameterList == null && functionParameterList == null)
+        if (callParameterList == null && functionParameterList == null) {
             return;
+        }
 
         if (callParameterList == null || functionParameterList == null) {
             Error.invalidCallArgumentType(exp);
@@ -337,8 +327,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         for (int i = 0; i < parameterCount; ++i) {
             var param = parameters.get(i);
             var arg = arguments.get(i);
+            arg.accept(this, level);
 
-            if (getResolvedType(arg) != param.type.type) {
+            if (arg.expType != param.type.type) {
                 Error.invalidCallArgumentType(exp);
                 return;
             }
@@ -360,13 +351,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(IndexVar var, int level) {
         // TODO: check out of bounds
         var.exp.accept(this, level);
-        if (getResolvedType(var.exp) != NameTy.INT) {
+        if (var.exp.expType != NameTy.INT) {
             Error.invalidIndexType(var);
         }
     }
 
     @Override
     public void visit(SimpleVar var, int level) {
-
     }
 }
