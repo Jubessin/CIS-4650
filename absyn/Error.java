@@ -85,14 +85,14 @@ public class Error {
 
     public static void invalidCallArgumentCount(CallExp exp, int expected, int actual) {
         System.err.println(
-            RED + "ERROR: " + 
-            RESET + "Invalid number of arguments for call to function " + 
-            YELLOW + "\'" + exp.func + "\'" + 
-            RESET + ", expected " + 
-            YELLOW + expected + 
-            RESET + ", but received " +
-            YELLOW + actual +
-            RESET + exp.lineToString()
+                RED + "ERROR: "
+                + RESET + "Invalid number of arguments for call to function "
+                + YELLOW + "\'" + exp.func + "\'"
+                + RESET + ", expected "
+                + YELLOW + expected
+                + RESET + ", but received "
+                + YELLOW + actual
+                + RESET + exp.lineToString()
         );
         isValid = false;
     }
@@ -103,14 +103,21 @@ public class Error {
         isValid = false;
     }
 
+    public static void indexOutOfBounds(IndexVar var, int size) {
+        System.err.println(RED + "ERROR: " + RESET + "Index out of bounds for array of size " + size + ": "
+                + YELLOW + "\'" + var.name + "\'" + RESET + var.lineToString()
+        );
+        isValid = false;
+    }
+
     public static void invalidTypeDeclaration(Dec dec) {
         System.err.println(
-            RED + "ERROR: " + 
-            RESET + "Type " + 
-            YELLOW + "\'" + dec.type + "\' " + 
-            RESET + "is not meaningful and will be changed to " + 
-            YELLOW + "\'int\'" + 
-            RESET + dec.lineToString()
+                RED + "ERROR: "
+                + RESET + "Type "
+                + YELLOW + "\'" + dec.type + "\' "
+                + RESET + "is not meaningful and will be changed to "
+                + YELLOW + "\'int\'"
+                + RESET + dec.lineToString()
         );
         isValid = false;
     }

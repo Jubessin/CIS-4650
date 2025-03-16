@@ -34,14 +34,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
         NodeType node = lookup(dec.name);
-
         if (node != null) {
             FunctionDec functionDec = (FunctionDec) node.dec;
 
             if (!functionDec.params.toString().equals(dec.params.toString())) {
                 Error.prototypeRedefinition(dec);
             }
-
             if (!functionDec.isPrototype && !dec.isPrototype) {
                 Error.functionRedefinition(dec);
             }
@@ -49,7 +47,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             node.dec = dec;
             return;
         }
-
         insert((Dec) dec, level);
     }
 
@@ -72,7 +69,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
-        try (var writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
+        try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
             writer.println(tableBuilder.toString());
         }
     }
@@ -88,10 +85,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(DecList list, int level) {
         print(level++, "Entering the global scope:");
-
         addPredefinedFunctions();
 
-        for (var item : list.getFlattened()) {
+        for (Dec item : list.getFlattened()) {
             item.accept(this, level);
         }
 
@@ -110,7 +106,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(SimpleDec dec, int level) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
-
             dec.type.type = NameTy.INT;
         }
 
@@ -121,7 +116,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     public void visit(ArrayDec dec, int level) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
-
             dec.type.type = NameTy.INT;
         }
 
@@ -155,7 +149,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             exp.decs.accept(this, level);
         }
 
-        for (var item : exp.exps.getFlattened()) {
+        for (Exp item : exp.exps.getFlattened()) {
             item.accept(this, level);
         }
 
@@ -173,7 +167,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(VarDecList list, int level) {
-        for (var item : list.getFlattened()) {
+        for (VarDec item : list.getFlattened()) {
             item.accept(this, level);
         }
     }
@@ -299,9 +293,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        var callParameterList = exp.args;
-        var functionDec = (FunctionDec) node.dec;
-        var functionParameterList = functionDec.params;
+        ExpList callParameterList = exp.args;
+        FunctionDec functionDec = (FunctionDec) node.dec;
+        VarDecList functionParameterList = functionDec.params;
         exp.expType = functionDec.type.type;
 
         if (callParameterList == null && functionParameterList == null) {
@@ -313,11 +307,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        var parameters = functionParameterList.getFlattened();
-        var arguments = callParameterList.getFlattened();
+        List<VarDec> parameters = functionParameterList.getFlattened();
+        List<Exp> arguments = callParameterList.getFlattened();
 
-        var parameterCount = parameters.size();
-        var argumentCount = arguments.size();
+        int parameterCount = parameters.size();
+        int argumentCount = arguments.size();
 
         if (parameterCount != argumentCount) {
             Error.invalidCallArgumentCount(exp, parameterCount, argumentCount);
@@ -325,8 +319,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
 
         for (int i = 0; i < parameterCount; ++i) {
-            var param = parameters.get(i);
-            var arg = arguments.get(i);
+            VarDec param = parameters.get(i);
+            Exp arg = arguments.get(i);
             arg.accept(this, level);
 
             if (arg.expType != param.type.type) {
@@ -342,17 +336,24 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(ExpList list, int level) {
-        for (var item : list.getFlattened()) {
+        for (Exp item : list.getFlattened()) {
             item.accept(this, level);
         }
     }
 
     @Override
     public void visit(IndexVar var, int level) {
-        // TODO: check out of bounds
+        NodeType node = lookup(var.name);
+        ArrayDec variable = (ArrayDec) node.dec;
         var.exp.accept(this, level);
         if (var.exp.expType != NameTy.INT) {
             Error.invalidIndexType(var);
+        }
+
+        if (var.exp instanceof IntExp exp) {
+            if (exp.value >= variable.size) {
+                Error.indexOutOfBounds(var, variable.size);
+            }
         }
     }
 
