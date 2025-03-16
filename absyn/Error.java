@@ -83,15 +83,35 @@ public class Error {
         isValid = false;
     }
 
-    public static void invalidCallArgumentCount(CallExp exp) {
-        System.err.println(RED + "ERROR: " + RESET + "Invalid number of arguments for call to function " + YELLOW
-                + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+    public static void invalidCallArgumentCount(CallExp exp, int expected, int actual) {
+        System.err.println(
+            RED + "ERROR: " + 
+            RESET + "Invalid number of arguments for call to function " + 
+            YELLOW + "\'" + exp.func + "\'" + 
+            RESET + ", expected " + 
+            YELLOW + expected + 
+            RESET + ", but received " +
+            YELLOW + actual +
+            RESET + exp.lineToString()
+        );
         isValid = false;
     }
 
     public static void invalidCallArgumentType(CallExp exp) {
-        System.err.println(RED + "ERROR: " + RESET + "Type mismatch for call to function " + YELLOW
+        System.err.println(RED + "ERROR: " + RESET + "Argument type mismatch for call to function " + YELLOW
                 + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+        isValid = false;
+    }
+
+    public static void invalidTypeDeclaration(Dec dec) {
+        System.err.println(
+            RED + "ERROR: " + 
+            RESET + "Type " + 
+            YELLOW + "\'" + dec.type + "\' " + 
+            RESET + "is not meaningful and will be changed to " + 
+            YELLOW + "\'int\'" + 
+            RESET + dec.lineToString()
+        );
         isValid = false;
     }
 

@@ -108,11 +108,23 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(SimpleDec dec, int level) {
+        if (dec.type.type == NameTy.VOID) {
+            Error.invalidTypeDeclaration(dec);
+
+            dec.type.type = NameTy.INT;
+        }
+
         insert(dec, level);
     }
 
     @Override
     public void visit(ArrayDec dec, int level) {
+        if (dec.type.type == NameTy.VOID) {
+            Error.invalidTypeDeclaration(dec);
+
+            dec.type.type = NameTy.INT;
+        }
+        
         insert(dec, level);
     }
 
@@ -311,17 +323,20 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        var arguments = callParameterList.getFlattened();
         var parameters = functionParameterList.getFlattened();
+        var arguments = callParameterList.getFlattened();
 
-        if (arguments.size() != parameters.size()) {
-            Error.invalidCallArgumentCount(exp);
+        var parameterCount = parameters.size();
+        var argumentCount = arguments.size();
+
+        if (parameterCount != argumentCount) {
+            Error.invalidCallArgumentCount(exp, parameterCount, argumentCount);
             return;
         }
 
-        for (int i = 0; i < arguments.size(); ++i) {
-            var arg = arguments.get(i);
+        for (int i = 0; i < parameterCount; ++i) {
             var param = parameters.get(i);
+            var arg = arguments.get(i);
 
             if (getResolvedType(arg) != param.type.type) {
                 Error.invalidCallArgumentType(exp);
