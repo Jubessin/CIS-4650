@@ -1,0 +1,38 @@
+/*
+*   File Name: 1.cm
+*   TODO: Tests that the CM compiler can handle variable declarations, assignments, functions, while loops successfully.
+*           This file will also have function prototypes and declarations (for the same function)
+*/
+
+int _integer;
+bool _boolean;
+
+bool _isPositive(int value);
+
+bool _isPositive(int value) 
+{
+    return value > 0;
+}
+
+int getInt(void) {
+    return 1;
+}
+
+void main(void) {
+    int a[10];
+    _integer = 77;
+
+    while (_integer < 80) {
+        a[getInt()] = 0;
+        _integer = _integer + 1;
+    }
+
+    if (_isPositive(2)) {
+        _boolean = true;
+    }
+    else {
+        _boolean = false;
+    }
+
+    return;
+}

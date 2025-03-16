@@ -303,7 +303,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
 
         if (callParameterList == null || functionParameterList == null) {
-            Error.invalidCallArgumentType(exp);
+            Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
             return;
         }
 
@@ -314,7 +314,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         int argumentCount = arguments.size();
 
         if (parameterCount != argumentCount) {
-            Error.invalidCallArgumentCount(exp, parameterCount, argumentCount);
+            Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
             return;
         }
 
@@ -324,7 +324,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             arg.accept(this, level);
 
             if (arg.expType != param.type.type) {
-                Error.invalidCallArgumentType(exp);
+                Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
                 return;
             }
         }

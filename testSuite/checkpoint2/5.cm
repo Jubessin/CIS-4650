@@ -1,0 +1,49 @@
+/*
+*   File Name: 5.cm
+*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
+*                - an invalid comment
+*                - a return statement without a semicolon
+*/
+
+
+/************* Here is a valid comment *********/
+/* Here is a */ invalid comment */
+
+
+
+int function(void) {
+    return 0
+}
+
+void invalidArguments(StringBuffer o);
+
+
+void function_2(void) {
+    double randomNumber;
+    int a;
+    int b;
+    bool c;
+
+    a = function(a,);
+    c = function() == a; 
+
+    while (b) {
+        while (a < 10) {
+            a = a + 1;
+        }
+
+        if (a == 10) {
+            c = c + 1;
+        }
+
+        if (c >= 3) {
+            b = false;
+        }
+    }
+
+    if () {
+
+    }
+
+    return;
+}

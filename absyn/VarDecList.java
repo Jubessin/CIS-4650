@@ -1,5 +1,7 @@
 package absyn;
 
+import java.util.List;
+
 public class VarDecList extends AbsynList<VarDec> {
 
     public VarDec head;
@@ -18,14 +20,12 @@ public class VarDecList extends AbsynList<VarDec> {
     @Override
     public String toString() {
         String paramString = "";
-        VarDecList iter = new VarDecList(this.head, this.tail);
-        while (iter != null) {
-            if (iter.head != null) {
-                paramString += iter.head.type.toString() + ",";
-            }
-            iter = iter.tail;
+        List<VarDec> list = this.getFlattened();
+
+        for (VarDec dec : list) {
+            paramString += dec.type.toString() + ", ";
         }
-        return paramString.substring(0, paramString.length() - 1);
+        return paramString.substring(0, paramString.length() - 2);
     }
 
     @Override

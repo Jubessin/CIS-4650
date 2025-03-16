@@ -20,6 +20,23 @@ public class NameTy extends Absyn {
         visitor.visit(this, level);
     }
 
+    public static String getString(int type) {
+        switch (type) {
+            case BOOL -> {
+                return "bool";
+            }
+            case INT -> {
+                return "int";
+            }
+            case VOID -> {
+                return "void";
+            }
+            default -> {
+                return "";
+            }
+        }
+    }
+
     @Override
     public String toString() {
         switch (this.type) {

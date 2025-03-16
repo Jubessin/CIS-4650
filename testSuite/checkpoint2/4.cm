@@ -1,0 +1,17 @@
+/*
+*   File Name: 4.cm
+*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
+*                - an if statement without a test
+*                - an iteration statement without a body
+*/
+
+void run(void) {
+    int i;
+    i = 8;
+
+    if () {
+
+    }
+
+    while (i > 0) 
+}

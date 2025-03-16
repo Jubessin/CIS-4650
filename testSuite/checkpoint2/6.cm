@@ -1,0 +1,8 @@
+int hello(int a, bool b);
+
+void main(void) {
+    int a[5];
+    bool b;
+
+    a[hello(3, false)] = 3;
+}
