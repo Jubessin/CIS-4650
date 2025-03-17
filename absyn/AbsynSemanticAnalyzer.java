@@ -33,24 +33,23 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
-        if (dec.name.equals("output") || dec.name.equals("input")) {
-            Error.redefinePredefinedFunction(dec);
-            return;
-        }
         NodeType node = lookup(dec.name);
         if (node != null) {
+            if (node.dec instanceof FunctionDec != true) {
+                Error.variableRedeclaration(dec);
+                return;
+            }
             FunctionDec functionDec = (FunctionDec) node.dec;
             String paramString = functionDec.params == null ? "" : functionDec.params.toString();
             String decString = dec.params == null ? "" : dec.params.toString();
 
-            if (functionDec.type.type != dec.type.type) {
+            if ((functionDec.type.type != dec.type.type)
+                    || !paramString.equals(decString)) {
                 Error.prototypeRedefinition(dec);
-            }
-            if (!paramString.equals(decString)) {
-                Error.prototypeRedefinition(dec);
-            }
-            if (!functionDec.isPrototype && !dec.isPrototype) {
+                return;
+            } else if (!functionDec.isPrototype && !dec.isPrototype) {
                 Error.functionRedefinition(dec);
+                return;
             }
 
             node.dec = dec;
@@ -100,10 +99,17 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         return expString.substring(0, expString.length() - 2);
     }
 
+    public void addPredefinedFunctions() {
+        VarDecList list = new VarDecList(new SimpleDec(0, 0, new NameTy(0, 0, NameTy.INT), "value"), null);
+        insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.INT), "input", null, new NilExp(0, 0)), 0);
+        insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.VOID), "output", list, new NilExp(0, 0)), 0);
+    }
+
     @Override
     public void visit(DecList list, int level) {
         print(level++, "Entering the global scope:");
 
+        addPredefinedFunctions();
         for (Dec item : list.getFlattened()) {
             item.accept(this, level);
         }
@@ -301,7 +307,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
         if (left.expType != right.expType) {
             Error.invalidAssignExpression(exp);
-            return;
         }
     }
 
@@ -318,10 +323,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         String functionName = exp.func;
         NodeType node = lookup(functionName);
 
-        if (functionName.equals("output") || functionName.equals("input")) {
-            Error.callPredefinedFunction(exp);
-            return;
-        }
         if (node == null) {
             Error.functionDoesNotExit(exp);
             return;
@@ -332,10 +333,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         String paramString = functionDec.params == null ? "" : functionDec.params.toString();
         String argString = callParameterList == null ? "" : expListToString(callParameterList, level);
         exp.expType = functionDec.type.type;
-
-        if (functionDec.isPrototype) {
-            Error.functionPrototypeOnly(exp);
-        }
 
         if (!paramString.equals(argString)) {
             Error.invalidCallArgumentType(exp, argString, paramString);

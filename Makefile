@@ -21,4 +21,4 @@ run:
 	java $(CLASSPATH) CM -a -s $(file)
 
 clean:
-	rm -f parser.java Lexer.java sym.java *.class absyn/*.class tests/*.sym tests/*.abs *~
+	rm -f parser.java Lexer.java sym.java *.class absyn/*.class testSuite/*/*.sym testSuite/*/*.abs *~ *.abs *.sym

@@ -20,12 +20,11 @@ public class Error {
         isValid = false;
     }
 
-    public static void callPredefinedFunction(CallExp exp) {
-        System.err.println(RED + "ERROR: " + RESET + "Calling a predefined function " + YELLOW
-                + "\'" + exp.func + "\'" + RESET + exp.lineToString());
-        isValid = false;
-    }
-
+    // public static void callPredefinedFunction(CallExp exp) {
+    //     System.err.println(RED + "ERROR: " + RESET + "Calling a predefined function " + YELLOW
+    //             + "\'" + exp.func + "\'" + RESET + exp.lineToString());
+    //     isValid = false;
+    // }
     public static void redefinePredefinedFunction(FunctionDec dec) {
         System.err.println(RED + "ERROR: " + RESET + "Redefining predefined function " + YELLOW
                 + "\'" + dec.name + "\'" + RESET + dec.lineToString());
@@ -59,12 +58,6 @@ public class Error {
     public static void invalidReturnType(ReturnExp exp, NameTy type) {
         System.err.println(RED + "ERROR: " + RESET + "Invalid return type, expected " + YELLOW
                 + "\'" + type.toString() + "\'" + RESET + exp.exp.lineToString());
-        isValid = false;
-    }
-
-    public static void functionPrototypeOnly(CallExp exp) {
-        System.err.println(RED + "ERROR: " + RESET + "The function " + YELLOW
-                + "\'" + exp.func + "\'" + RESET + ", has no function definition" + exp.lineToString());
         isValid = false;
     }
 
