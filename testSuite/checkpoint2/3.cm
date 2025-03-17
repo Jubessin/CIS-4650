@@ -1,12 +1,17 @@
 /*
 *   File Name: 3.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - a function declared without a semicolon
-*                - a function declared without any parameters
-*                - a function declared with invalid parameters
+*                - defining predefined function ("output")
+*                - assigning invalid value to variable
+*                - returning invalid expression (nested version)
 */
 
 
-void test_function_declaration_without_parameters();
-bool test_function_declaration_without_semicolon(void)
-void test_function_declaration_with_invalid_parameters(object o);
+int output(void);
+
+int main(void) {
+    int a;
+    a = true;
+
+    return true && (false || true);
+}

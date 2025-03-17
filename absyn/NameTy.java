@@ -32,7 +32,7 @@ public class NameTy extends Absyn {
                 return "void";
             }
             default -> {
-                return "";
+                return "undefined";
             }
         }
     }

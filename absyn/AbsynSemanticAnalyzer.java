@@ -88,7 +88,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     public String expListToString(ExpList list, int level) {
-        Error.printError = false;
         String expString = "";
         List<Exp> flatList = list.getFlattened();
 
@@ -98,7 +97,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             expString += isArrayExp(exp) ? "[]" : "";
             expString += ", ";
         }
-        Error.printError = true;
         return expString.substring(0, expString.length() - 2);
     }
 
@@ -222,8 +220,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             case OpExp.isBooleanOperation -> {
                 // might need to change later
                 exp.expType = NameTy.BOOL;
-                if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
-                    if (!(left.expType == NameTy.VOID && right.expType != NameTy.VOID)) {
+                if (exp.op != OpExp.MINUS && exp.op != OpExp.UMINUS) {
+                    if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
                         Error.invalidBooleanOperation(exp);
                     }
                 }
@@ -303,6 +301,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
         if (left.expType != right.expType) {
             Error.invalidAssignExpression(exp);
+            return;
         }
     }
 
@@ -342,16 +341,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             Error.invalidCallArgumentType(exp, argString, paramString);
 
         }
-
-        // for (int i = 0; i < parameterCount; ++i) {
-        //     VarDec param = parameters.get(i);
-        //     Exp arg = arguments.get(i);
-        //     arg.accept(this, level);
-        //     if (arg.expType != param.type.type) {
-        //         Error.invalidCallArgumentType(exp, exp.args.toString(this, level), functionDec.params.toString());
-        //         return;
-        //     }
-        // }
     }
 
     @Override

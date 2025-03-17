@@ -1,17 +1,37 @@
 /*
 *   File Name: 4.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - an if statement without a test
+*                - calling undefined function
 *                - an iteration statement without a body
+*                - testing boolean operation with void function
 */
 
-void run(void) {
+int calculateSum(int array[], int size) {
     int i;
-    i = 8;
+    int sum;
+    sum = 0;
+    i = 0;
+    while (i < size) {
+        sum = sum + array[i];
+        i = i + 1;
+    }
+    return sum;
+}
 
-    if () {
+void random(void) {
+    return;
+}
 
+int main(void) {
+    int notAnArray;
+    int anArray[4];
+    notAnArray = 0;
+    functionCall(1, 2);
+    calculateSum(notAnArray, 4);
+    calculateSum(anArray, 4);
+
+    if (random() && true) {
+        return 1;
     }
 
-    while (i > 0) 
 }

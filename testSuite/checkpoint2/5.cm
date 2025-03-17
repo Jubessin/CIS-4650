@@ -1,49 +1,46 @@
 /*
 *   File Name: 5.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - an invalid comment
-*                - a return statement without a semicolon
+*                - calling undefined function
+*                - using undefined variable
+*                - an iteration statement without a body
+*                - variable redeclaration
+*                - setting invalid value to integer
+*                - invalid return statement
+*                - using void function as a test for if statement
 */
 
-
-/************* Here is a valid comment *********/
-/* Here is a */ invalid comment */
-
-
-
-int function(void) {
-    return 0
+int calculateSum(int array[], int size) {
+    int i;
+    int sum;
+    sum = 0;
+    i = 0;
+    while (i < size) {
+        sum = sum + array[i];
+        i = i + 1;
+    }
+    return sum;
 }
 
-void invalidArguments(StringBuffer o);
-
-
-void function_2(void) {
-    double randomNumber;
-    int a;
-    int b;
-    bool c;
-
-    a = function(a,);
-    c = function() == a; 
-
-    while (b) {
-        while (a < 10) {
-            a = a + 1;
-        }
-
-        if (a == 10) {
-            c = c + 1;
-        }
-
-        if (c >= 3) {
-            b = false;
-        }
-    }
-
-    if () {
-
-    }
-
+void random(void) {
     return;
+}
+
+int main(void) {
+    int notAnArray;
+    int notAnArray;
+    notAnArray = 0;
+
+    calculateSum(notAnArray, 4);
+    calculateSum(arrayDoesNotExist, 4);
+    functionDoesNotExist(1, 2);
+
+    notAnArray = notAnArray < true;
+
+    if (random()) {
+        return 1;
+    }
+
+    return true || (false && true);
+
 }
