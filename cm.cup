@@ -149,6 +149,10 @@ var_declaration                 ::= type_specifier:t ID:i SEMI
                                 |   type_specifier:t ID:i LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
                                     {:
                                         int num = Integer.valueOf(n);
+                                        if (num < 1) {
+                                            parser.report_error("Invalid array size ", n);
+                                            num = 0;
+                                        }
                                         RESULT = new ArrayDec(tleft, tright, t, i, num);
                                     :}
                                 |   type_specifier:t error:e LEFT_SQUARE_BRACKET NUM:n RIGHT_SQUARE_BRACKET SEMI
