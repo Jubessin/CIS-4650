@@ -14,12 +14,12 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(SimpleDec dec, int level) {
+    public void visit(SimpleDec dec, int level, boolean isAddress) {
         print(level, "SimpleDec: " + dec.name, dec.type);
     }
 
     @Override
-    public void visit(ArrayDec dec, int level) {
+    public void visit(ArrayDec dec, int level, boolean isAddress) {
         if (dec.size == 0) {
             print(level, "ArrayDec: " + dec.name + "[]", dec.type);
             return;
@@ -29,7 +29,7 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(FunctionDec dec, int level) {
+    public void visit(FunctionDec dec, int level, boolean isAddress) {
         print(level++, "FunctionDec: " + dec.name, dec.type);
         if (dec.params != null) {
             print(level, "Parameters: ", dec.params);
@@ -40,7 +40,7 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(IfExp exp, int level) {
+    public void visit(IfExp exp, int level, boolean isAddress) {
         print(level++, "IfExp: ");
         print(level, "Test: ", exp.test);
         print(level, "Body: ", exp.body);
@@ -51,7 +51,7 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(OpExp exp, int level) {
+    public void visit(OpExp exp, int level, boolean isAddress) {
         print(
                 level,
                 "OpExp: " + switch (exp.op) {
@@ -88,54 +88,54 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(IntExp exp, int level) {
+    public void visit(IntExp exp, int level, boolean isAddress) {
         print(level, "IntExp: " + exp.value);
     }
 
     @Override
-    public void visit(NilExp exp, int level) {
+    public void visit(NilExp exp, int level, boolean isAddress) {
         print(level, "NilExp");
     }
 
     @Override
-    public void visit(VarExp exp, int level) {
+    public void visit(VarExp exp, int level, boolean isAddress) {
         print(level, "VarExp: ", exp._var);
     }
 
     @Override
-    public void visit(BoolExp exp, int level) {
+    public void visit(BoolExp exp, int level, boolean isAddress) {
         print(level, "BoolExp: " + exp.value);
     }
 
     @Override
-    public void visit(WhileExp exp, int level) {
+    public void visit(WhileExp exp, int level, boolean isAddress) {
         print(level++, "WhileExp: ");
         print(level, "Test: ", exp.test);
         print(level, "Body: ", exp.body);
     }
 
     @Override
-    public void visit(AssignExp exp, int level) {
+    public void visit(AssignExp exp, int level, boolean isAddress) {
         print(level, "AssignExp: ", exp.left, exp.right);
     }
 
     @Override
-    public void visit(ReturnExp exp, int level) {
+    public void visit(ReturnExp exp, int level, boolean isAddress) {
         print(level, "ReturnExp: ", exp.exp);
     }
 
     @Override
-    public void visit(CompoundExp exp, int level) {
+    public void visit(CompoundExp exp, int level, boolean isAddress) {
         print(level, "CompoundExp: ", exp.decs, exp.exps);
     }
 
     @Override
-    public void visit(CallExp exp, int level) {
+    public void visit(CallExp exp, int level, boolean isAddress) {
         print(level, "CallExp: " + exp.func, exp.args);
     }
 
     @Override
-    public void visit(NameTy type, int level) {
+    public void visit(NameTy type, int level, boolean isAddress) {
         print(level, "NameTy: " + switch (type.type) {
             case NameTy.VOID ->
                 "Void";
@@ -151,42 +151,42 @@ public class AbsynTreeBuilder implements AbsynVisitor {
     }
 
     @Override
-    public void visit(DecList list, int level) {
+    public void visit(DecList list, int level, boolean isAddress) {
         while (list != null) {
             if (list.head != null) {
-                list.head.accept(this, level);
+                list.head.accept(this, level, false);
             }
             list = list.tail;
         }
     }
 
     @Override
-    public void visit(ExpList list, int level) {
+    public void visit(ExpList list, int level, boolean isAddress) {
         while (list != null) {
             if (list.head != null) {
-                list.head.accept(this, level);
+                list.head.accept(this, level, false);
             }
             list = list.tail;
         }
     }
 
     @Override
-    public void visit(VarDecList list, int level) {
+    public void visit(VarDecList list, int level, boolean isAddress) {
         while (list != null) {
             if (list.head != null) {
-                list.head.accept(this, level);
+                list.head.accept(this, level, false);
             }
             list = list.tail;
         }
     }
 
     @Override
-    public void visit(IndexVar _var, int level) {
+    public void visit(IndexVar _var, int level, boolean isAddress) {
         print(level, "IndexVar: " + _var.name, _var.exp);
     }
 
     @Override
-    public void visit(SimpleVar _var, int level) {
+    public void visit(SimpleVar _var, int level, boolean isAddress) {
         print(level, "SimpleVar: " + _var.name);
     }
 
@@ -200,7 +200,7 @@ public class AbsynTreeBuilder implements AbsynVisitor {
                 continue;
             }
 
-            node.accept(this, level + 1);
+            node.accept(this, level + 1, false);
         }
     }
 

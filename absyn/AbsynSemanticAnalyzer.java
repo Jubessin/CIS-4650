@@ -91,7 +91,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         List<Exp> flatList = list.getFlattened();
 
         for (Exp exp : flatList) {
-            exp.accept(this, level);
+            exp.accept(this, level, false);
             expString += NameTy.getString(exp.expType);
             expString += isArrayExp(exp) ? "[]" : "";
             expString += ", ";
@@ -106,12 +106,12 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(DecList list, int level) {
+    public void visit(DecList list, int level, boolean isAddress) {
         print(level++, "Entering the global scope:");
 
         addPredefinedFunctions();
         for (Dec item : list.getFlattened()) {
-            item.accept(this, level);
+            item.accept(this, level, false);
         }
 
         for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
@@ -130,7 +130,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(SimpleDec dec, int level) {
+    public void visit(SimpleDec dec, int level, boolean isAddress) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
             dec.type.type = NameTy.INT;
@@ -140,7 +140,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(ArrayDec dec, int level) {
+    public void visit(ArrayDec dec, int level, boolean isAddress) {
         if (dec.type.type == NameTy.VOID) {
             Error.invalidTypeDeclaration(dec);
             dec.type.type = NameTy.INT;
@@ -150,7 +150,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(FunctionDec dec, int level) {
+    public void visit(FunctionDec dec, int level, boolean isAddress) {
         currentFunction = dec;
         insert(dec, level);
 
@@ -159,25 +159,25 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         }
 
         if (dec.params != null) {
-            dec.params.accept(this, level + 1);
+            dec.params.accept(this, level + 1, false);
         }
 
         print(level, "Entering the scope for function " + dec.name + ":");
 
-        dec.body.accept(this, level + 1);
+        dec.body.accept(this, level + 1, false);
 
         delete(level + 1);
         print(level, "Leaving the function scope");
     }
 
     @Override
-    public void visit(CompoundExp exp, int level) {
+    public void visit(CompoundExp exp, int level, boolean isAddress) {
         if (exp.decs != null) {
-            exp.decs.accept(this, level);
+            exp.decs.accept(this, level, false);
         }
 
         for (Exp item : exp.exps.getFlattened()) {
-            item.accept(this, level);
+            item.accept(this, level, false);
         }
 
         for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
@@ -193,9 +193,9 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(VarDecList list, int level) {
+    public void visit(VarDecList list, int level, boolean isAddress) {
         for (VarDec item : list.getFlattened()) {
-            item.accept(this, level);
+            item.accept(this, level, false);
         }
     }
 
@@ -204,10 +204,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(OpExp exp, int level) {
+    public void visit(OpExp exp, int level, boolean isAddress) {
         Exp left = exp.left, right = exp.right;
-        left.accept(this, level);
-        right.accept(this, level);
+        left.accept(this, level, false);
+        right.accept(this, level, false);
 
         switch (exp.operationType) {
             case OpExp.isRelationalOperation -> {
@@ -243,15 +243,15 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(IntExp exp, int level) {
+    public void visit(IntExp exp, int level, boolean isAddress) {
     }
 
     @Override
-    public void visit(NilExp exp, int level) {
+    public void visit(NilExp exp, int level, boolean isAddress) {
     }
 
     @Override
-    public void visit(VarExp exp, int level) {
+    public void visit(VarExp exp, int level, boolean isAddress) {
         NodeType variable = lookup(exp._var.name);
         if (variable == null) {
             Error.variableDoesNotExist(exp);
@@ -262,52 +262,52 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             exp.isArray = true;
         }
         exp.expType = variable.dec.type.type;
-        exp._var.accept(this, level);
+        exp._var.accept(this, level, false);
     }
 
     @Override
-    public void visit(BoolExp exp, int level) {
+    public void visit(BoolExp exp, int level, boolean isAddress) {
     }
 
     @Override
-    public void visit(IfExp exp, int level) {
-        exp.test.accept(this, level);
+    public void visit(IfExp exp, int level, boolean isAddress) {
+        exp.test.accept(this, level, false);
 
         if (exp.test.expType == NameTy.VOID) {
             Error.invalidConditionType(exp);
         }
 
         print(level, "Entering a new if block:");
-        exp.body.accept(this, level + 1);
+        exp.body.accept(this, level + 1, false);
         print(level, "Leaving the if block");
 
         if (!(exp._else instanceof NilExp)) {
             print(level, "Entering a new else block:");
-            exp._else.accept(this, level + 1);
+            exp._else.accept(this, level + 1, false);
             print(level, "Leaving the else block");
         }
     }
 
     @Override
-    public void visit(WhileExp exp, int level) {
-        exp.test.accept(this, level);
+    public void visit(WhileExp exp, int level, boolean isAddress) {
+        exp.test.accept(this, level, false);
 
         if (exp.test.expType == NameTy.VOID) {
             Error.invalidConditionType(exp);
         }
 
         print(level, "Entering a new while block:");
-        exp.body.accept(this, level + 1);
+        exp.body.accept(this, level + 1, false);
         print(level, "Leaving the while block");
     }
 
     @Override
-    public void visit(AssignExp exp, int level) {
+    public void visit(AssignExp exp, int level, boolean isAddress) {
         VarExp left = exp.left;
         Exp right = exp.right;
 
-        left.accept(this, level);
-        right.accept(this, level);
+        left.accept(this, level, false);
+        right.accept(this, level, false);
 
         if (left.expType != right.expType) {
             Error.invalidAssignExpression(exp);
@@ -315,15 +315,15 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(ReturnExp exp, int level) {
-        exp.exp.accept(this, level);
+    public void visit(ReturnExp exp, int level, boolean isAddress) {
+        exp.exp.accept(this, level, false);
         if (currentFunction.type.type != exp.exp.expType) {
             Error.invalidReturnType(exp, currentFunction.type);
         }
     }
 
     @Override
-    public void visit(CallExp exp, int level) {
+    public void visit(CallExp exp, int level, boolean isAddress) {
         String functionName = exp.func;
         NodeType node = lookup(functionName);
 
@@ -345,25 +345,25 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(NameTy type, int level) {
+    public void visit(NameTy type, int level, boolean isAddress) {
     }
 
     @Override
-    public void visit(ExpList list, int level) {
+    public void visit(ExpList list, int level, boolean isAddress) {
         for (Exp item : list.getFlattened()) {
-            item.accept(this, level);
+            item.accept(this, level, false);
         }
     }
 
     @Override
-    public void visit(IndexVar var, int level) {
-        var.exp.accept(this, level);
+    public void visit(IndexVar var, int level, boolean isAddress) {
+        var.exp.accept(this, level, false);
         if (var.exp.expType != NameTy.INT) {
             Error.invalidIndexType(var);
         }
     }
 
     @Override
-    public void visit(SimpleVar var, int level) {
+    public void visit(SimpleVar var, int level, boolean isAddress) {
     }
 }

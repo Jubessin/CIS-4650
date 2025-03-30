@@ -11,8 +11,8 @@ public class DecList extends AbsynList<Dec> {
     }
 
     @Override
-    public void accept(AbsynVisitor visitor, int level) {
-        visitor.visit(this, level);
+    public void accept(AbsynVisitor visitor, int level, boolean isAddress) {
+        visitor.visit(this, level, isAddress);
     }
 
     @Override

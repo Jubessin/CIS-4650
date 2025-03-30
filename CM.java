@@ -29,7 +29,7 @@ public class CM {
     private static void runBuilder(Absyn tree) throws Exception {
         var builder = new AbsynTreeBuilder();
 
-        tree.accept(builder, 0);
+        tree.accept(builder, 0, false);
 
         if (saveSyntaxTree) {
             builder.serialize(inputFile);
@@ -39,7 +39,7 @@ public class CM {
     private static void runAnalyzer(Absyn tree) throws Exception {
         var analyzer = new AbsynSemanticAnalyzer();
 
-        tree.accept(analyzer, 0);
+        tree.accept(analyzer, 0, false);
 
         if (saveSymbolTable) {
             analyzer.serialize(inputFile);
@@ -53,7 +53,7 @@ public class CM {
 
         var generator = new AbsynCodeGenerator();
 
-        tree.accept(generator, 0);
+        tree.accept(generator, 0, false);
 
         if (saveAssemblyCode) {
             generator.serialize(inputFile);
