@@ -11,13 +11,13 @@ public class CM {
     private static String inputFile;
     private static boolean saveSyntaxTree;
     private static boolean saveSymbolTable;
-    private static boolean generateAssemblyCode;
+    private static boolean saveAssemblyCode;
 
     private static String PROGRAM_USAGE
             = "java -cp <cup_jar_path> CM -a <input_file>"
             + "\n\t-a             (Optional) Saves the abstract syntax tree to a file"
             + "\n\t-s             (Optional) Saves the symbol table to a file"
-            + "\n\t-c             (Optional) Generates assembly code"
+            + "\n\t-c             (Optional) Saves generated assembly code"
             + "\n\tinput_file     The file to compile, with the .cm extension";
 
     private static parser createParser(String args[]) throws Exception {
@@ -47,11 +47,14 @@ public class CM {
     }
 
     private static void runGenerator(Absyn tree) throws Exception {
+        if (!Error.getIsValid())
+            return;
+
         var generator = new AbsynCodeGenerator();
 
         tree.accept(generator, 0);
 
-        if (generateAssemblyCode) {
+        if (saveAssemblyCode) {
             generator.serialize(inputFile);
         }   
     }
@@ -75,7 +78,7 @@ public class CM {
             }
 
             if (_arg.equals("-c")) {
-                generateAssemblyCode = true;
+                saveAssemblyCode = true;
                 continue;
             }
 
