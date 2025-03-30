@@ -1,10 +1,16 @@
 package absyn;
 
 public class FunctionDec extends Dec {
-
+    // Expression body.
     public Exp body;
+
+    // The start address of the function.
+    public int address;    
+
+    // Parameters of the function.
     public VarDecList params;
-    
+
+    // Whether the function is defined, or just a prototype.
     public final boolean isPrototype;
 
     public FunctionDec(int row, int col, NameTy type, String name, VarDecList params, Exp body) {
