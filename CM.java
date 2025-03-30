@@ -13,12 +13,13 @@ public class CM {
     private static boolean saveSymbolTable;
     private static boolean saveAssemblyCode;
 
-    private static String PROGRAM_USAGE
-            = "java -cp <cup_jar_path> CM -a <input_file>"
-            + "\n\t-a             (Optional) Saves the abstract syntax tree to a file"
-            + "\n\t-s             (Optional) Saves the symbol table to a file"
-            + "\n\t-c             (Optional) Saves generated assembly code"
-            + "\n\tinput_file     The file to compile, with the .cm extension";
+    private static final String PROGRAM_USAGE
+            = """
+              java -cp <cup_jar_path> CM -a <input_file>
+              \t-a             (Optional) Saves the abstract syntax tree to a file
+              \t-s             (Optional) Saves the symbol table to a file
+              \t-c             (Optional) Saves generated assembly code
+              \tinput_file     The file to compile, with the .cm extension""";
 
     private static parser createParser(String args[]) throws Exception {
         var reader = new FileReader(inputFile);
