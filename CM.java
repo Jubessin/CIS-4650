@@ -38,7 +38,7 @@ public class CM {
 
     private static void runAnalyzer(Absyn tree) throws Exception {
         var analyzer = new AbsynSemanticAnalyzer();
-        
+
         tree.accept(analyzer, 0);
 
         if (saveSymbolTable) {
@@ -47,8 +47,9 @@ public class CM {
     }
 
     private static void runGenerator(Absyn tree) throws Exception {
-        if (!Error.getIsValid())
+        if (!absyn.Error.getIsValid()) {
             return;
+        }
 
         var generator = new AbsynCodeGenerator();
 
@@ -56,7 +57,7 @@ public class CM {
 
         if (saveAssemblyCode) {
             generator.serialize(inputFile);
-        }   
+        }
     }
 
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
@@ -107,8 +108,9 @@ public class CM {
             var parser = createParser(argv);
             var tree = (Absyn) parser.parse().value;
 
-            if (!parser.valid)
+            if (!parser.valid) {
                 return;
+            }
 
             runBuilder(tree);
             runAnalyzer(tree);
