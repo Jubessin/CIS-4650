@@ -3,6 +3,7 @@ package absyn;
 import java.io.*;
 
 public class AbsynCodeGenerator implements AbsynVisitor {
+    // The set of predefined registers available for generation.
     private class Registers {
         // Specifies the default register.
         public static final int Default = 0;
@@ -16,35 +17,67 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         // The stack frame pointer, fp.
         public static final int FramePointer = 5;
 
-        // TODO: What is ac, ac1?
+        // Special register, ac.
+        public static final int AccumulatorA = 0;
+
+        // Special register, ac1.
+        public static final int AccumulatorB = 1;
     }
 
+    // The set of instructions available for generation.
     private class Instructions {
-        /************************** Format: instruction register, register, register **************************/
+        /************************** Format: instruction r1, r2, r3 **************************/
 
+        // Stop program execution.
         public static final String Halt = "HALT";
         
+        // Reads the value of r1 as input.
         public static final String Input = "IN";
+
+        // Writes the value of r1 as output.
         public static final String Output = "OUT";
 
+        // Computes the addition between the value of r2 and r3, and stores in r1.
         public static final String Add = "ADD";
+
+        // Computes the division between the value of r2 and r3, and stores in r1.
         public static final String Divide = "DIV";
+
+        // Computes the subtraction between the value of r2 and r3, and stores in r1.
         public static final String Subtract = "SUB";
+
+        // Computes the multiplication between the value of r2 and r3, and stores in r1.
         public static final String Multiply = "MUL";
 
-        /************************** Format: instruction register, offset(register) **************************/
+        /************************** Format: instruction r1, offset(r2) **************************/
 
         public static final String Store = "ST";
 
+        // Load the value of r2 into r1. 
         public static final String Load = "LD";
-        public static final String LoadOffset = "LDC";      // TODO: What is C?
+
+        // Load the address of r2 into r1.
         public static final String LoadAddress = "LDA";
 
+        // Load the offset value into r1.
+        public static final String LoadConstant = "LDC";
+
+        // Jump to offset + value of r2, if r1 is equal 0.
         public static final String JumpEqual = "JE";
+
+        // Jump to offset + value of r2, if r1 is not equal to 0.
         public static final String JumpNotEqual = "JNE";
+
+        // Jump to offset + value of r2, if r1 is less than 0.
         public static final String JumpLessThan = "JLT";
+
+        // Jump to offset + value of r2, if r1 is less or equal to 0.
         public static final String JumpLessEqual = "JLE";
+
+        // Jump to offset + value of r2, if r1 is greater than 0.
         public static final String JumpGreaterThan = "JGT";
+
+        // Jump to offset + value of r2, if r1 is greater or equal to 0.
         public static final String JumpGreaterEqual = "JGE";
     }
 
