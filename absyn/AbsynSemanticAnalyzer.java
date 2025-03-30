@@ -121,6 +121,10 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             }
         }
 
+        if (table.get("main") == null) {
+            Error.missingMain();
+        }
+
         delete(level);
         print(--level, "Leaving the global scope");
     }

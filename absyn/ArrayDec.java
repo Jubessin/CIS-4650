@@ -16,6 +16,7 @@ public class ArrayDec extends VarDec {
 
     @Override
     public String toString() {
-        return name + ": " + type.toString() + "[]";
+        String number = size > 0 ? Integer.toString(size) : "";
+        return name + ": " + type.toString() + "[" + number + "]";
     }
 }

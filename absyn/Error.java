@@ -14,6 +14,12 @@ public class Error {
         isValid = false;
     }
 
+    public static void missingMain() {
+        System.err.println(RED + "ERROR: " + RESET + "Missing " + YELLOW
+                + "\'main\'" + RESET + " function");
+        isValid = false;
+    }
+
     public static void variableDoesNotExist(VarExp exp) {
         System.err.println(RED + "ERROR: " + RESET + "Use of undeclared identifier " + YELLOW
                 + "\'" + exp._var.name + "\'" + RESET + exp.lineToString());
