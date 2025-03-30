@@ -8,4 +8,5 @@ parser.java
 sym.java
 *.abs
 *.sym
+*.tm
 test.cm

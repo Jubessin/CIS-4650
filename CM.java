@@ -11,11 +11,13 @@ public class CM {
     private static String inputFile;
     private static boolean saveSyntaxTree;
     private static boolean saveSymbolTable;
+    private static boolean generateAssemblyCode;
 
     private static String PROGRAM_USAGE
             = "java -cp <cup_jar_path> CM -a <input_file>"
             + "\n\t-a             (Optional) Saves the abstract syntax tree to a file"
             + "\n\t-s             (Optional) Saves the symbol table to a file"
+            + "\n\t-c             (Optional) Generates assembly code"
             + "\n\tinput_file     The file to compile, with the .cm extension";
 
     private static parser createParser(String args[]) throws Exception {
@@ -44,6 +46,16 @@ public class CM {
         }
     }
 
+    private static void runGenerator(Absyn tree) throws Exception {
+        var generator = new AbsynCodeGenerator();
+
+        tree.accept(generator, 0);
+
+        if (generateAssemblyCode) {
+            generator.serialize(inputFile);
+        }   
+    }
+
     private static void readCommandLineArguments(String args[]) throws IllegalArgumentException, FileNotFoundException {
         if (args.length == 0) {
             throw new IllegalArgumentException("The CM compiler requires a valid input file.");
@@ -59,6 +71,11 @@ public class CM {
 
             if (_arg.equals("-s")) {
                 saveSymbolTable = true;
+                continue;
+            }
+
+            if (_arg.equals("-c")) {
+                generateAssemblyCode = true;
                 continue;
             }
 
@@ -92,6 +109,7 @@ public class CM {
 
             runBuilder(tree);
             runAnalyzer(tree);
+            runGenerator(tree);
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IllegalArgumentException e) {
