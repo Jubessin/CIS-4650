@@ -26,11 +26,12 @@ public class Error {
         isValid = false;
     }
 
-    // public static void callPredefinedFunction(CallExp exp) {
-    //     System.err.println(RED + "ERROR: " + RESET + "Calling a predefined function " + YELLOW
-    //             + "\'" + exp.func + "\'" + RESET + exp.lineToString());
-    //     isValid = false;
-    // }
+    public static void incompleteFunctionDefinition(FunctionDec dec) {
+        System.err.println(RED + "ERROR: " + RESET + YELLOW
+                + "\'" + dec.name + "\'" + RESET + " has an incomplete function definition" + dec.lineToString());
+        isValid = false;
+    }
+
     public static void redefinePredefinedFunction(FunctionDec dec) {
         System.err.println(RED + "ERROR: " + RESET + "Redefining predefined function " + YELLOW
                 + "\'" + dec.name + "\'" + RESET + dec.lineToString());

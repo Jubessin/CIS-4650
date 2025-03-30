@@ -117,6 +117,18 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
             for (NodeType node : decList.getValue()) {
                 Dec dec = node.dec;
+                if (dec instanceof FunctionDec functionDec) {
+                    if (functionDec.body instanceof NilExp) {
+                        switch (functionDec.name) {
+                            case "input" -> {
+                            }
+                            case "output" -> {
+                            }
+                            default ->
+                                Error.incompleteFunctionDefinition(functionDec);
+                        }
+                    }
+                }
                 print(level, dec.toString());
             }
         }
