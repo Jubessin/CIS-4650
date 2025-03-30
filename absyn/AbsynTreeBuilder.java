@@ -20,6 +20,11 @@ public class AbsynTreeBuilder implements AbsynVisitor {
 
     @Override
     public void visit(ArrayDec dec, int level) {
+        if (dec.size == 0) {
+            print(level, "ArrayDec: " + dec.name + "[]", dec.type);
+            return;
+        }
+        
         print(level, "ArrayDec: " + dec.name + "[" + dec.size + "]", dec.type);
     }
 
