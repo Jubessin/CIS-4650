@@ -1,8 +1,7 @@
 package absyn;
 
 import java.io.*;
-import java.util.Queue;
-import java.util.LinkedList;
+import java.util.Stack;
 
 public class AbsynCodeGenerator implements AbsynVisitor {
     /** The set of predefined registers available for generation. */
@@ -199,15 +198,15 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     private static int line = -1;
     
     private static final StringBuilder builder = new StringBuilder();
-    private static final Queue<Integer> sections = new LinkedList<>();
+    private static final Stack<Integer> sections = new Stack<>();
 
     private static void endSection() {
-        var start = sections.remove();
+        var start = sections.pop();
         MemoryInstruction.print(start, MemoryInstruction.LoadAddress, Registers.ProgramCounter, line - start, Registers.ProgramCounter); // Jump to the start of the function?
     }
 
     private static void beginSection() {
-        sections.add(++line);
+        sections.push(++line);
     }
 
     public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
