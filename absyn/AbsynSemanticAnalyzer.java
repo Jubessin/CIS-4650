@@ -31,7 +31,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         list.add(new NodeType(dec.name, dec, level));
     }
 
-    // needs to be completed, I think
     private static void insert(FunctionDec dec, int level) {
         NodeType node = lookup(dec.name);
         if (node != null) {
@@ -80,13 +79,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         tableBuilder.append(" ".repeat(level * INDENT));
     }
 
-    public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
-        try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
-            writer.println(tableBuilder.toString());
-        }
-    }
-
-    public String expListToString(ExpList list, int level) {
+    private String expListToString(ExpList list, int level) {
         String expString = "";
         List<Exp> flatList = list.getFlattened();
 
@@ -99,46 +92,20 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         return expString.substring(0, expString.length() - 2);
     }
 
-    public void addPredefinedFunctions() {
+    private void addPredefinedFunctions() {
         VarDecList list = new VarDecList(new SimpleDec(0, 0, new NameTy(0, 0, NameTy.INT), "value"), null);
         insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.INT), "input", null, new NilExp(0, 0)), 0);
         insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.VOID), "output", list, new NilExp(0, 0)), 0);
     }
-
-    @Override
-    public void visit(DecList list, int level, boolean isAddress) {
-        print(level++, "Entering the global scope:");
-
-        addPredefinedFunctions();
-        for (Dec item : list.getFlattened()) {
-            item.accept(this, level, false);
+    
+    private boolean isArrayExp(Exp exp) {
+        return exp instanceof VarExp && ((VarExp) exp).isArray;
+    }
+    
+    public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
+            writer.println(tableBuilder.toString());
         }
-
-        for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
-            for (NodeType node : decList.getValue()) {
-                Dec dec = node.dec;
-                if (dec instanceof FunctionDec functionDec) {
-                    if (functionDec.body instanceof NilExp) {
-                        switch (functionDec.name) {
-                            case "input" -> {
-                            }
-                            case "output" -> {
-                            }
-                            default ->
-                                Error.incompleteFunctionDefinition(functionDec);
-                        }
-                    }
-                }
-                print(level, dec.toString());
-            }
-        }
-
-        if (table.get("main") == null) {
-            Error.missingMain();
-        }
-
-        delete(level);
-        print(--level, "Leaving the global scope");
     }
 
     @Override
@@ -205,17 +172,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
-    public void visit(VarDecList list, int level, boolean isAddress) {
-        for (VarDec item : list.getFlattened()) {
-            item.accept(this, level, false);
-        }
-    }
-
-    public boolean isArrayExp(Exp exp) {
-        return exp instanceof VarExp && ((VarExp) exp).isArray;
-    }
-
-    @Override
     public void visit(OpExp exp, int level, boolean isAddress) {
         Exp left = exp.left, right = exp.right;
         left.accept(this, level, false);
@@ -229,7 +185,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 }
             }
             case OpExp.isArithmeticOperation -> {
-                // need to implement unary
                 boolean typeMismatch;
                 exp.expType = NameTy.INT;
 
@@ -240,7 +195,6 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                 }
             }
             case OpExp.isBooleanOperation -> {
-                // might need to change later
                 exp.expType = NameTy.BOOL;
                 if (exp.op != OpExp.MINUS && exp.op != OpExp.UMINUS) {
                     if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
@@ -361,12 +315,55 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     @Override
+    public void visit(DecList list, int level, boolean isAddress) {
+        print(level++, "Entering the global scope:");
+
+        addPredefinedFunctions();
+        for (Dec item : list.getFlattened()) {
+            item.accept(this, level, false);
+        }
+
+        for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
+            for (NodeType node : decList.getValue()) {
+                Dec dec = node.dec;
+                if (dec instanceof FunctionDec functionDec) {
+                    if (functionDec.body instanceof NilExp) {
+                        switch (functionDec.name) {
+                            case "input" -> {
+                            }
+                            case "output" -> {
+                            }
+                            default ->
+                                Error.incompleteFunctionDefinition(functionDec);
+                        }
+                    }
+                }
+                print(level, dec.toString());
+            }
+        }
+
+        if (table.get("main") == null) {
+            Error.missingMain();
+        }
+
+        delete(level);
+        print(--level, "Leaving the global scope");
+    }
+
+    @Override
     public void visit(ExpList list, int level, boolean isAddress) {
         for (Exp item : list.getFlattened()) {
             item.accept(this, level, false);
         }
     }
 
+    @Override
+    public void visit(VarDecList list, int level, boolean isAddress) {
+        for (VarDec item : list.getFlattened()) {
+            item.accept(this, level, false);
+        }
+    }
+    
     @Override
     public void visit(IndexVar var, int level, boolean isAddress) {
         var.exp.accept(this, level, false);
