@@ -254,6 +254,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
         
         if (!(exp.body instanceof NilExp)) {
+            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.)
+            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
             endSection();
         }
     }
@@ -293,6 +295,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         exp.body.accept(this, level, isAddress);
 
         if (!(exp.body instanceof NilExp)) {
+            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.).
+            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
             endSection();
         }
     }
