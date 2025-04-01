@@ -1,9 +1,11 @@
 package absyn;
 
 import java.io.*;
-import java.util.Stack;
+import java.util.*;
 
 public class AbsynCodeGenerator implements AbsynVisitor {
+
+    public ArrayList<Node> functions = new ArrayList<>();
 
     /**
      * The set of predefined registers available for generation.
@@ -146,7 +148,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             validateInstruction(instruction);
             Registers.validateRegister(register1);
             Registers.validateRegister(register2);
-            builder.append(line + ":\t" + instruction + " " + register1 + "," + offset + "(" + register2 + ")\n");
+            builder.append(line + ":    " + instruction + "    " + register1 + "," + offset + "(" + register2 + ")\n");
         }
 
         /**
@@ -245,7 +247,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static void print(int line, String instruction, int... registers) {
             validateInstruction(instruction);
 
-            builder.append(line + ":\t" + instruction + " ");
+            builder.append(line + ":    " + instruction + " ");
 
             int i = 0;
             for (var register : registers) {
@@ -308,16 +310,23 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(FunctionDec dec, int level, boolean isAddress) {
+        builder.append("* <- Beginning of function ").append(dec.name).append("\n");
         beginSection();
+        if (dec.name.equals("main")) {
+            mainFunctionAddress = line;
+        }
 
+        builder.append("* <- Storing return address in stack frame\n");
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
 
         // TODO: where/how to process parameters? accept each?
         dec.body.accept(this, level + 1, isAddress);
 
+        builder.append("* <- Return to caller\n");
         MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
 
         endSection();
+        builder.append("* <- End of function ").append(dec.name).append("\n");
     }
 
     @Override
@@ -426,8 +435,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(DecList list, int level, boolean isAddress) {
         // Setup
-        MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, Registers.Default, Registers.Default);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, Registers.Default, Registers.Default);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, 0, Registers.GlobalPointer);
         MemoryInstruction.print(MemoryInstruction.Store);
 
         beginSection();
@@ -454,7 +463,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress - 1), Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress + 1), Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
         RegisterInstruction.print(RegisterInstruction.Halt);
     }

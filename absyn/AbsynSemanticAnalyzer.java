@@ -6,7 +6,7 @@ import java.util.*;
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
-    private static final HashMap<String, ArrayList<NodeType>> table = new HashMap<>();
+    private static final HashMap<String, ArrayList<Node>> table = new HashMap<>();
     private static final StringBuilder tableBuilder = new StringBuilder();
     private static final int INDENT = 4;
 
@@ -22,17 +22,17 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             Error.variableRedeclaration(dec);
             return;
         }
-        ArrayList<NodeType> list = table.getOrDefault(dec.name, null);
+        ArrayList<Node> list = table.getOrDefault(dec.name, null);
         if (list == null) {
             table.put(dec.name, new ArrayList<>());
         }
 
         list = table.getOrDefault(dec.name, null);
-        list.add(new NodeType(dec.name, dec, level));
+        list.add(new Node(dec.name, dec, level));
     }
 
     private static void insert(FunctionDec dec, int level) {
-        NodeType node = lookup(dec.name);
+        Node node = lookup(dec.name);
         if (node != null) {
             if (node.dec instanceof FunctionDec != true) {
                 Error.variableRedeclaration(dec);
@@ -57,8 +57,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         insert((Dec) dec, level);
     }
 
-    private static NodeType lookup(String id) {
-        ArrayList<NodeType> list = table.getOrDefault(id, null);
+    private static Node lookup(String id) {
+        ArrayList<Node> list = table.getOrDefault(id, null);
         if (list != null) {
             if (list.isEmpty()) {
                 table.remove(id);
@@ -70,7 +70,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     }
 
     private static void delete(int level) {
-        for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
+        for (HashMap.Entry<String, ArrayList<Node>> list : table.entrySet()) {
             list.getValue().removeIf(node -> node.level == level);
         }
     }
@@ -97,11 +97,11 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.INT), "input", null, new NilExp(0, 0)), 0);
         insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.VOID), "output", list, new NilExp(0, 0)), 0);
     }
-    
+
     private boolean isArrayExp(Exp exp) {
         return exp instanceof VarExp && ((VarExp) exp).isArray;
     }
-    
+
     public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
             writer.println(tableBuilder.toString());
@@ -159,8 +159,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             item.accept(this, level, false);
         }
 
-        for (HashMap.Entry<String, ArrayList<NodeType>> list : table.entrySet()) {
-            for (NodeType node : list.getValue()) {
+        for (HashMap.Entry<String, ArrayList<Node>> list : table.entrySet()) {
+            for (Node node : list.getValue()) {
                 Dec dec = node.dec;
                 if (node.level == level) {
                     print(level, dec.toString());
@@ -218,7 +218,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
 
     @Override
     public void visit(VarExp exp, int level, boolean isAddress) {
-        NodeType variable = lookup(exp._var.name);
+        Node variable = lookup(exp._var.name);
         if (variable == null) {
             Error.variableDoesNotExist(exp);
             return;
@@ -291,7 +291,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
     @Override
     public void visit(CallExp exp, int level, boolean isAddress) {
         String functionName = exp.func;
-        NodeType node = lookup(functionName);
+        Node node = lookup(functionName);
 
         if (node == null) {
             Error.functionDoesNotExit(exp);
@@ -323,8 +323,8 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             item.accept(this, level, false);
         }
 
-        for (HashMap.Entry<String, ArrayList<NodeType>> decList : table.entrySet()) {
-            for (NodeType node : decList.getValue()) {
+        for (HashMap.Entry<String, ArrayList<Node>> decList : table.entrySet()) {
+            for (Node node : decList.getValue()) {
                 Dec dec = node.dec;
                 if (dec instanceof FunctionDec functionDec) {
                     if (functionDec.body instanceof NilExp) {
@@ -363,7 +363,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
             item.accept(this, level, false);
         }
     }
-    
+
     @Override
     public void visit(IndexVar var, int level, boolean isAddress) {
         var.exp.accept(this, level, false);

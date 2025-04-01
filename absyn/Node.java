@@ -1,11 +1,13 @@
 package absyn;
 
-public class NodeType {
+public class Node {
+
     public Dec dec;
+    // this will correspond to offsets, and line numbers
     public int level;
     public String name;
 
-    public NodeType(String name, Dec dec, int level) {
+    public Node(String name, Dec dec, int level) {
         this.dec = dec;
         this.name = name;
         this.level = level;
