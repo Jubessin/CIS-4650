@@ -277,6 +277,18 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
     }
 
+    private final class ProgramStack {
+
+        public static ArrayList<Node> globalStack = new ArrayList<>();
+        public static ArrayList<Node> frameStack = new ArrayList<>();
+    
+        public static int frameStackOffset = 0;
+        public static int globalStackOffset = 0;
+    
+        public ProgramStack() {
+        }
+    }
+    
     private static int line = -1;
     private static int mainFunctionAddress;
     private static int originalFramePointer;
@@ -325,19 +337,26 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
-        // TODO: Push address of variable to stack? Need to also check whether its global/local. 
         if (dec.global) {
-            dec.frameOffset = -ProgramStack.globalStack.size();
+            dec.frameOffset = ++ProgramStack.globalStackOffset;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
         } else {
-            dec.frameOffset = -ProgramStack.frameStack.size();
+            dec.frameOffset = ++ProgramStack.frameStackOffset;
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
     }
 
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
-        // TODO: Push address of variable to stack? Need to also check whether its global/local. 
+        if (dec.global) {
+            dec.frameOffset = ++ProgramStack.globalStackOffset;
+            ProgramStack.globalStackOffset += dec.size;
+            ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
+        } else {
+            dec.frameOffset = ++ProgramStack.frameStackOffset;
+            ProgramStack.frameStackOffset += dec.size;
+            ProgramStack.frameStack.add(new Node(dec.name, dec, level));
+        }
     }
 
     @Override
