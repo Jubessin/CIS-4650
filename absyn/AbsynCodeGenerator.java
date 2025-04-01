@@ -287,11 +287,12 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     
         public static Node find(String name) {
             for (var item : ProgramStack.frameStack) {
+                System.out.println("item in frame: " + item.name);
                 if (item.name.equals(name)) {
                     return item;
                 }
             }
-
+            
             for (var item : ProgramStack.globalStack) {
                 if (item.name.equals(name)) {
                     return item;
@@ -350,6 +351,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
+        System.out.println("visit decl " + dec.name);
         if (dec.global) {
             dec.frameOffset = ProgramStack.globalStackOffset++;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
@@ -358,9 +360,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
     }
-
+    
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
+        System.out.println("visit decl " + dec.name);
         if (dec.global) {
             dec.frameOffset = ProgramStack.globalStackOffset;
             ProgramStack.globalStackOffset += dec.size;
@@ -488,6 +491,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(CompoundExp exp, int level, boolean isAddress) {
+        exp.decs.accept(this, level, isAddress);
+        
         for (var item : exp.exps.getFlattened()) {
             item.accept(this, level, isAddress);
         }
@@ -570,6 +575,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     
     @Override
     public void visit(SimpleVar _var, int level, boolean isAddress) {
+        System.out.println(_var.name + " " + _var.col + ", " + _var.row);
+
         var node = ProgramStack.find(_var.name);
 
         int register;
