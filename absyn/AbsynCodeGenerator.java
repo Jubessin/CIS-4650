@@ -197,6 +197,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     
     private static int line = -1;
     private static int mainFunctionAddress;
+    private static int originalFramePointer;
     
     private static final StringBuilder builder = new StringBuilder();
     private static final Stack<Integer> sections = new Stack<>();
@@ -362,8 +363,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
 
         // Exit
-        // Push original frame pointer, TODO: How to determine offset?
-        // Push frame pointer, TODO: How to determine offset?
+        // TODO: Original frame pointer should be negated here?
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); 
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress - 1), Registers.ProgramCounter); 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer); 
