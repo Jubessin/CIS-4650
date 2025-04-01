@@ -4,90 +4,138 @@ import java.io.*;
 import java.util.Stack;
 
 public class AbsynCodeGenerator implements AbsynVisitor {
-    /** The set of predefined registers available for generation. */
+
+    /**
+     * The set of predefined registers available for generation.
+     */
     private final class Registers {
-        /** Specifies the default register. */
+
+        /**
+         * Specifies the default register.
+         */
         public static final int Default = 0;
-        
-        /** The program counter, pc. */
+
+        /**
+         * The program counter, pc.
+         */
         public static final int ProgramCounter = 7;
 
-        /** The global frame pointer, gp. */
+        /**
+         * The global frame pointer, gp.
+         */
         public static final int GlobalPointer = 6;
 
-        /** The stack frame pointer, fp. */
+        /**
+         * The stack frame pointer, fp.
+         */
         public static final int FramePointer = 5;
 
-        /** Special register, ac. */
+        /**
+         * Special register, ac.
+         */
         public static final int AccumulatorA = 0;
 
-        /** Special register, ac1. */
+        /**
+         * Special register, ac1.
+         */
         public static final int AccumulatorB = 1;
 
         /**
          * Validates the register number.
+         *
          * @param register The register number to be validated.
          * @throws AssertionError if the register number is invalid.
          */
         public static void validateRegister(int register) {
-            assert register == Default || 
-                   register == ProgramCounter || 
-                   register == GlobalPointer || 
-                   register == FramePointer || 
-                   register == AccumulatorA || 
-                   register == AccumulatorB : 
-                   "Invalid register: " + register;
+            assert register == Default
+                    || register == ProgramCounter
+                    || register == GlobalPointer
+                    || register == FramePointer
+                    || register == AccumulatorA
+                    || register == AccumulatorB :
+                    "Invalid register: " + register;
         }
     }
 
-    /** The set of register memory instructions available. */
+    /**
+     * The set of register memory instructions available.
+     */
     private final class MemoryInstruction {
-        /** Store the value of {@code register1} into {@code register2}. */
+
+        /**
+         * Store the value of {@code register1} into {@code register2}.
+         */
         public static final String Store = "ST";
 
-        /** Load the value of {@code register2} into {@code register1}. */
+        /**
+         * Load the value of {@code register2} into {@code register1}.
+         */
         public static final String Load = "LD";
 
-        /** Load the address of {@code register2} into {@code register1}. */
+        /**
+         * Load the address of {@code register2} into {@code register1}.
+         */
         public static final String LoadAddress = "LDA";
 
-        /** Load the {@code offset} value into {@code register1}. */
+        /**
+         * Load the {@code offset} value into {@code register1}.
+         */
         public static final String LoadConstant = "LDC";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is equal 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is equal 0.
+         */
         public static final String JumpEqual = "JE";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is not equal to 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is not equal to 0.
+         */
         public static final String JumpNotEqual = "JNE";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is less than 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is less than 0.
+         */
         public static final String JumpLessThan = "JLT";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is less or equal to 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is less or equal to 0.
+         */
         public static final String JumpLessEqual = "JLE";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is greater than 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is greater than 0.
+         */
         public static final String JumpGreaterThan = "JGT";
 
-        /** Jump to {@code offset} + value of {@code register2}, if {@code register1} is greater or equal to 0. */
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is greater or equal to 0.
+         */
         public static final String JumpGreaterEqual = "JGE";
-        
+
         private static void validateInstruction(String instruction) {
-            assert  instruction == Load || 
-                    instruction == Store || 
-                    instruction == JumpEqual || 
-                    instruction == LoadAddress || 
-                    instruction == LoadConstant || 
-                    instruction == JumpNotEqual || 
-                    instruction == JumpLessThan || 
-                    instruction == JumpLessEqual || 
-                    instruction == JumpGreaterThan || 
-                    instruction == JumpGreaterEqual : 
+            assert instruction == Load
+                    || instruction == Store
+                    || instruction == JumpEqual
+                    || instruction == LoadAddress
+                    || instruction == LoadConstant
+                    || instruction == JumpNotEqual
+                    || instruction == JumpLessThan
+                    || instruction == JumpLessEqual
+                    || instruction == JumpGreaterThan
+                    || instruction == JumpGreaterEqual :
                     "Invalid instruction: " + instruction;
         }
-        
+
         /**
-         * Appends an instruction to the builder using the format - {@code line: instruction register1, offset(register2) }.
+         * Appends an instruction to the builder using the format - {@code line: instruction register1, offset(register2)
+         * }.
+         *
          * @param line The line number of the instruction.
          * @param instruction The instruction to be printed.
          * @param register1 The first register to be printed.
@@ -102,7 +150,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
 
         /**
-         * Increments the current line before calling {@link #print(int, String, int, int, int)}.
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)}.
+         *
          * @param instruction The instruction to be printed.
          * @param register1 The first register to be printed.
          * @param offset The offset to be printed.
@@ -113,7 +163,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
 
         /**
-         * Increments the current line before calling {@link #print(int, String, int, int, int)} using the default register and offset (0).
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)} using the default register
+         * and offset (0).
+         *
          * @param instruction The instruction to be printed.
          * @param register1 The first register to be printed.
          * @param offset The offset to be printed.
@@ -124,50 +177,74 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
     }
 
-    /** The set of register (only) instructions available. */
+    /**
+     * The set of register (only) instructions available.
+     */
     private final class RegisterInstruction {
-        /** Stop program execution. */ 
+
+        /**
+         * Stop program execution.
+         */
         public static final String Halt = "HALT";
-        
-        /** Reads the value of {@code register1} as input. */ 
+
+        /**
+         * Reads the value of {@code register1} as input.
+         */
         public static final String Input = "IN";
 
-        /** Writes the value of {@code register1} as output. */
+        /**
+         * Writes the value of {@code register1} as output.
+         */
         public static final String Output = "OUT";
 
-        /** Computes the addition between the value of {@code register2} and {@code register3}, and stores in {@code register1}. */
+        /**
+         * Computes the addition between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
         public static final String Add = "ADD";
 
-        /** Computes the division between the value of {@code register2} and {@code register3}, and stores in {@code register1}. */
+        /**
+         * Computes the division between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
         public static final String Divide = "DIV";
 
-        /** Computes the subtraction between the value of {@code register2} and {@code register3}, and stores in {@code register1}. */
+        /**
+         * Computes the subtraction between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
         public static final String Subtract = "SUB";
 
-        /** Computes the multiplication between the value of {@code register2} and {@code register3}, and stores in {@code register1}. */
+        /**
+         * Computes the multiplication between the value of {@code register2}
+         * and {@code register3}, and stores in {@code register1}.
+         */
         public static final String Multiply = "MUL";
-  
+
+        @SuppressWarnings("StringEquality")
         private static void validateInstruction(String instruction) {
-            assert  instruction == Add || 
-                    instruction == Halt || 
-                    instruction == Input || 
-                    instruction == Output || 
-                    instruction == Divide || 
-                    instruction == Subtract || 
-                    instruction == Multiply :
+            assert instruction == Add
+                    || instruction == Halt
+                    || instruction == Input
+                    || instruction == Output
+                    || instruction == Divide
+                    || instruction == Subtract
+                    || instruction == Multiply :
                     "Invalid instruction: " + instruction;
         }
-        
+
         // TODO: Test this method.
         /**
-         * Appends an instruction to the builder using the format - {@code line: instruction register1, register2, register3 }.
+         * Appends an instruction to the builder using the format - {@code line: instruction register1, register2, register3
+         * }.
+         *
          * @param line The line number of the instruction.
          * @param instruction The instruction to be printed.
          * @param registers The registers to be printed.
          */
         public static void print(int line, String instruction, int... registers) {
             validateInstruction(instruction);
-            
+
             builder.append(line + ":\t" + instruction + " ");
 
             int i = 0;
@@ -184,9 +261,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             builder.deleteCharAt(builder.length() - 1); // Remove the last comma.
             builder.append('\n');
         }
-    
+
         /**
-         * Increments the current line before calling {@link #print(int, String, int, int, int)}.
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)}.
+         *
          * @param instruction The instruction to be printed.
          * @param registers The registers to be printed.
          */
@@ -194,11 +273,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             print(++line, instruction, registers);
         }
     }
-    
+
     private static int line = -1;
     private static int mainFunctionAddress;
     private static int originalFramePointer;
-    
+
     private static final StringBuilder builder = new StringBuilder();
     private static final Stack<Integer> sections = new Stack<>();
 
@@ -234,7 +313,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
 
         // TODO: where/how to process parameters? accept each?
-
         dec.body.accept(this, level + 1, isAddress);
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
@@ -255,7 +333,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         if (!(exp._else instanceof NilExp)) {
             exp._else.accept(this, level, isAddress);
         }
-        
+
         if (!(exp.body instanceof NilExp)) {
             // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.)
             // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
@@ -375,10 +453,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         // TODO: Original frame pointer should be negated here?
         MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); 
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress - 1), Registers.ProgramCounter); 
-        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer); 
-        RegisterInstruction.print(RegisterInstruction.Halt); 
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress - 1), Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
+        RegisterInstruction.print(RegisterInstruction.Halt);
     }
 
     @Override
@@ -401,6 +479,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     }
 
     @Override
-    public void visit(SimpleVar var, int level, boolean isAddress) { 
+    public void visit(SimpleVar var, int level, boolean isAddress) {
     }
 }
