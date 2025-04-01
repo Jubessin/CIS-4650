@@ -219,12 +219,12 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
-
+        // TODO: Push address of variable to stack? Need to also check whether its global/local. 
     }
 
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
-
+        // TODO: Push address of variable to stack? Need to also check whether its global/local. 
     }
 
     @Override
@@ -233,7 +233,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
 
-        // TODO: where/how to process parameters?
+        // TODO: where/how to process parameters? accept each?
 
         dec.body.accept(this, level + 1, isAddress);
 
@@ -251,6 +251,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         exp.test.accept(this, level, isAddress);
         exp.body.accept(this, level, isAddress);
 
+        // TODO: Create begin/end section for else statement
         if (!(exp._else instanceof NilExp)) {
             exp._else.accept(this, level, isAddress);
         }
@@ -258,6 +259,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         if (!(exp.body instanceof NilExp)) {
             // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.)
             // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
+            // Might need to use the test to determine what instruction to use?
             endSection();
         }
     }
@@ -305,7 +307,14 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(AssignExp exp, int level, boolean isAddress) {
+        VarExp left = exp.left;
+        Exp right = exp.right;
 
+        // TODO: I think this is right? Was in the slides.
+        left.accept(this, level, true);
+        right.accept(this, level, false);
+
+        // TODO: Anything else to do here?
     }
 
     @Override
@@ -325,8 +334,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         // Store argument values, TODO: How to store multiple?
         // Push original frame pointer, TODO: How to determine offset?
         // Push frame pointer, TODO: How to determine offset?
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);    // Load accumulator with return pointer
-        // Jump to function location, TODO: Need to lookup function?
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -1, Registers.ProgramCounter); // TODO: Need to lookup function for address
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
     }
@@ -393,6 +402,5 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleVar var, int level, boolean isAddress) { 
-        // TODO: Push address of variable to stack?
     }
 }
