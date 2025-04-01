@@ -320,7 +320,13 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(CallExp exp, int level, boolean isAddress) {
+        // Store argument values, TODO: How to store multiple?
+        // Push original frame pointer, TODO: How to determine offset?
+        // Push frame pointer, TODO: How to determine offset?
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);    // Load accumulator with return pointer
+        // Jump to function location, TODO: Need to lookup function?
 
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
     }
 
     @Override
