@@ -148,7 +148,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             validateInstruction(instruction);
             Registers.validateRegister(register1);
             Registers.validateRegister(register2);
-            builder.append(line + ":    " + instruction + "    " + register1 + "," + offset + "(" + register2 + ")\n");
+
+            builder.append(line).append(":\t\t").append(instruction).append("\t\t").append(register1).append(",").append(offset).append("(").append(register2).append(")\n");
         }
 
         /**
@@ -247,7 +248,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static void print(int line, String instruction, int... registers) {
             validateInstruction(instruction);
 
-            builder.append(line + ":    " + instruction + " ");
+            builder.append(line + ":\t\t" + instruction + "\t\t");
 
             int i = 0;
             for (var register : registers) {
@@ -293,8 +294,32 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     }
 
     public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
+        // Wrote this because the tm.c program doesn't seem to work with tabs (so I convert them into spaces)
+        StringBuilder result = new StringBuilder();
+        int column = 0; // Tracks the current column position
+
+        for (char c : builder.toString().toCharArray()) {
+            switch (c) {
+                case '\t' -> {
+                    int spacesToAdd = 4 - (column % 4); // Calculate required spaces
+                    if (column >= 16) {
+                        spacesToAdd = 0;
+                    }
+                    result.append(" ".repeat(spacesToAdd));
+                    column += spacesToAdd;
+                }
+                case '\n' -> {
+                    result.append(c);
+                    column = 0;
+                }
+                default -> {
+                    result.append(c);
+                    column++;
+                }
+            }
+        }
         try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".tm"), "UTF-8")) {
-            writer.println(builder.toString());
+            writer.println(result.toString());
         }
     }
 
