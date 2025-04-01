@@ -4,11 +4,12 @@ import java.util.*;
 
 public class ProgramStack {
 
-    public ArrayList<Node> globalStack;
-    public ArrayList<Node> frameStack;
+    public static ArrayList<Node> globalStack = new ArrayList<>();
+    public static ArrayList<Node> frameStack = new ArrayList<>();
+
+    public static int frameStackOffset = 0;
+    public static int globalStackOffset = 0;
 
     public ProgramStack() {
-        this.globalStack = new ArrayList<>();
-        this.frameStack = new ArrayList<>();
     }
 }

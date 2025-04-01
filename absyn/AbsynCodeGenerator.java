@@ -326,6 +326,13 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
         // TODO: Push address of variable to stack? Need to also check whether its global/local. 
+        if (dec.global) {
+            dec.frameOffset = -ProgramStack.globalStack.size();
+            ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
+        } else {
+            dec.frameOffset = -ProgramStack.frameStack.size();
+            ProgramStack.frameStack.add(new Node(dec.name, dec, level));
+        }
     }
 
     @Override
@@ -480,13 +487,24 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         endSection();
 
         for (var item : list.getFlattened()) {
+            if (item instanceof VarDec variable) {
+                variable.global = true;
+            }
             item.accept(this, level, isAddress);
         }
 
+        int stackSize = ProgramStack.globalStack.size();
+        int fpOffset = -ProgramStack.globalStack.size();
+        if (stackSize == 0) {
+            fpOffset = 0;
+        } else {
+            VarDec dec = (VarDec) ProgramStack.globalStack.get(stackSize - 1).dec;
+            dec.frameOffset;
+        }
         // Exit
         // TODO: Original frame pointer should be negated here?
-        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, originalFramePointer, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, fpOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, fpOffset, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress + 1), Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
