@@ -377,7 +377,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(VarDecList list, int level, boolean isAddress) {
-
+        for (var item : list.getFlattened()) {
+            item.accept(this, level, isAddress);
+        }
     }
 
     @Override
