@@ -3,268 +3,468 @@ package absyn;
 import java.io.*;
 import java.util.*;
 
-@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-public class AbsynSemanticAnalyzer implements AbsynVisitor {
+public class AbsynCodeGenerator implements AbsynVisitor {
 
-    private static final HashMap<String, ArrayList<Node>> table = new HashMap<>();
-    private static final StringBuilder tableBuilder = new StringBuilder();
-    private static final int INDENT = 4;
+    public ArrayList<Node> functions = new ArrayList<>();
 
-    private FunctionDec currentFunction;
+    /**
+     * The set of predefined registers available for generation.
+     */
+    private final class Registers {
 
-    private static void print(int level, String message) {
-        indent(level);
-        tableBuilder.append(message + "\n");
+        /**
+         * Specifies the default register.
+         */
+        public static final int Default = 0;
+
+        /**
+         * The program counter, pc.
+         */
+        public static final int ProgramCounter = 7;
+
+        /**
+         * The global frame pointer, gp.
+         */
+        public static final int GlobalPointer = 6;
+
+        /**
+         * The stack frame pointer, fp.
+         */
+        public static final int FramePointer = 5;
+
+        /**
+         * Special register, ac.
+         */
+        public static final int AccumulatorA = 0;
+
+        /**
+         * Special register, ac1.
+         */
+        public static final int AccumulatorB = 1;
+
+        /**
+         * Validates the register number.
+         *
+         * @param register The register number to be validated.
+         * @throws AssertionError if the register number is invalid.
+         */
+        public static void validateRegister(int register) {
+            assert register == Default
+                    || register == ProgramCounter
+                    || register == GlobalPointer
+                    || register == FramePointer
+                    || register == AccumulatorA
+                    || register == AccumulatorB :
+                    "Invalid register: " + register;
+        }
     }
 
-    private static void insert(Dec dec, int level) {
-        if (lookup(dec.name) != null && lookup(dec.name).level == level) {
-            Error.variableRedeclaration(dec);
-            return;
-        }
-        ArrayList<Node> list = table.getOrDefault(dec.name, null);
-        if (list == null) {
-            table.put(dec.name, new ArrayList<>());
+    /**
+     * The set of register memory instructions available.
+     */
+    private final class MemoryInstruction {
+
+        /**
+         * Store the value of {@code register1} into {@code register2}.
+         */
+        public static final String Store = "ST";
+
+        /**
+         * Load the value of {@code register2} into {@code register1}.
+         */
+        public static final String Load = "LD";
+
+        /**
+         * Load the address of {@code register2} into {@code register1}.
+         */
+        public static final String LoadAddress = "LDA";
+
+        /**
+         * Load the {@code offset} value into {@code register1}.
+         */
+        public static final String LoadConstant = "LDC";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is equal 0.
+         */
+        public static final String JumpEqual = "JE";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is not equal to 0.
+         */
+        public static final String JumpNotEqual = "JNE";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is less than 0.
+         */
+        public static final String JumpLessThan = "JLT";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is less or equal to 0.
+         */
+        public static final String JumpLessEqual = "JLE";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is greater than 0.
+         */
+        public static final String JumpGreaterThan = "JGT";
+
+        /**
+         * Jump to {@code offset} + value of {@code register2}, if
+         * {@code register1} is greater or equal to 0.
+         */
+        public static final String JumpGreaterEqual = "JGE";
+
+        private static void validateInstruction(String instruction) {
+            assert instruction == Load
+                    || instruction == Store
+                    || instruction == JumpEqual
+                    || instruction == LoadAddress
+                    || instruction == LoadConstant
+                    || instruction == JumpNotEqual
+                    || instruction == JumpLessThan
+                    || instruction == JumpLessEqual
+                    || instruction == JumpGreaterThan
+                    || instruction == JumpGreaterEqual :
+                    "Invalid instruction: " + instruction;
         }
 
-        list = table.getOrDefault(dec.name, null);
-        list.add(new Node(dec.name, dec, level));
+        /**
+         * Appends an instruction to the builder using the format - {@code line: instruction register1, offset(register2)
+         * }.
+         *
+         * @param line The line number of the instruction.
+         * @param instruction The instruction to be printed.
+         * @param register1 The first register to be printed.
+         * @param offset The offset to be printed.
+         * @param register2 The second register to be printed.
+         */
+        public static void print(int line, String instruction, int register1, int offset, int register2) {
+            validateInstruction(instruction);
+            Registers.validateRegister(register1);
+            Registers.validateRegister(register2);
+
+            builder.append(line).append(":\t\t").append(instruction).append("\t\t").append(register1).append(",").append(offset).append("(").append(register2).append(")\n");
+        }
+
+        /**
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)}.
+         *
+         * @param instruction The instruction to be printed.
+         * @param register1 The first register to be printed.
+         * @param offset The offset to be printed.
+         * @param register2 The second register to be printed.
+         */
+        public static void print(String instruction, int register1, int offset, int register2) {
+            print(++line, instruction, register1, offset, register2);
+        }
+
+        /**
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)} using the default register
+         * and offset (0).
+         *
+         * @param instruction The instruction to be printed.
+         * @param register1 The first register to be printed.
+         * @param offset The offset to be printed.
+         * @param register2 The second register to be printed.
+         */
+        public static void print(String instruction) {
+            print(++line, instruction, Registers.Default, Registers.Default, Registers.Default);
+        }
     }
 
-    private static void insert(FunctionDec dec, int level) {
-        Node node = lookup(dec.name);
-        if (node != null) {
-            if (node.dec instanceof FunctionDec != true) {
-                Error.variableRedeclaration(dec);
-                return;
+    /**
+     * The set of register (only) instructions available.
+     */
+    private final class RegisterInstruction {
+
+        /**
+         * Stop program execution.
+         */
+        public static final String Halt = "HALT";
+
+        /**
+         * Reads the value of {@code register1} as input.
+         */
+        public static final String Input = "IN";
+
+        /**
+         * Writes the value of {@code register1} as output.
+         */
+        public static final String Output = "OUT";
+
+        /**
+         * Computes the addition between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
+        public static final String Add = "ADD";
+
+        /**
+         * Computes the division between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
+        public static final String Divide = "DIV";
+
+        /**
+         * Computes the subtraction between the value of {@code register2} and
+         * {@code register3}, and stores in {@code register1}.
+         */
+        public static final String Subtract = "SUB";
+
+        /**
+         * Computes the multiplication between the value of {@code register2}
+         * and {@code register3}, and stores in {@code register1}.
+         */
+        public static final String Multiply = "MUL";
+
+        @SuppressWarnings("StringEquality")
+        private static void validateInstruction(String instruction) {
+            assert instruction == Add
+                    || instruction == Halt
+                    || instruction == Input
+                    || instruction == Output
+                    || instruction == Divide
+                    || instruction == Subtract
+                    || instruction == Multiply :
+                    "Invalid instruction: " + instruction;
+        }
+
+        // TODO: Test this method.
+        /**
+         * Appends an instruction to the builder using the format - {@code line: instruction register1, register2, register3
+         * }.
+         *
+         * @param line The line number of the instruction.
+         * @param instruction The instruction to be printed.
+         * @param registers The registers to be printed.
+         */
+        public static void print(int line, String instruction, int... registers) {
+            validateInstruction(instruction);
+
+            builder.append(line + ":\t\t" + instruction + "\t\t");
+
+            int i = 0;
+            for (var register : registers) {
+                Registers.validateRegister(register);
+                builder.append(register + ",");
+                ++i;
             }
-            FunctionDec functionDec = (FunctionDec) node.dec;
-            String paramString = functionDec.params == null ? "" : functionDec.params.toString();
-            String decString = dec.params == null ? "" : dec.params.toString();
 
-            if ((functionDec.type.type != dec.type.type)
-                    || !paramString.equals(decString)) {
-                Error.prototypeRedefinition(dec);
-                return;
-            } else if (!functionDec.isPrototype && !dec.isPrototype) {
-                Error.functionRedefinition(dec);
-                return;
+            for (; i < 3; ++i) {
+                builder.append(Registers.Default + ",");
             }
 
-            node.dec = dec;
-            return;
+            builder.deleteCharAt(builder.length() - 1); // Remove the last comma.
+            builder.append('\n');
         }
-        insert((Dec) dec, level);
+
+        /**
+         * Increments the current line before calling
+         * {@link #print(int, String, int, int, int)}.
+         *
+         * @param instruction The instruction to be printed.
+         * @param registers The registers to be printed.
+         */
+        public static void print(String instruction, int... registers) {
+            print(++line, instruction, registers);
+        }
     }
 
-    private static Node lookup(String id) {
-        ArrayList<Node> list = table.getOrDefault(id, null);
-        if (list != null) {
-            if (list.isEmpty()) {
-                table.remove(id);
-                return null;
+    private final class ProgramStack {
+
+        public static ArrayList<Node> globalStack = new ArrayList<>();
+        public static ArrayList<Node> frameStack = new ArrayList<>();
+    
+        public static int frameStackOffset = 0;
+        public static int globalStackOffset = 0;
+    
+        public static Node find(String name) {
+            for (var item : ProgramStack.frameStack) {
+                System.out.println("item in frame: " + item.name);
+                if (item.name.equals(name)) {
+                    return item;
+                }
             }
-            return list.get(list.size() - 1);
+            
+            for (var item : ProgramStack.globalStack) {
+                if (item.name.equals(name)) {
+                    return item;
+                }
+            }
+
+            return null;
         }
-        return null;
+    }
+    
+    private static int line = -1;
+    private static int mainFunctionAddress;
+    private static int originalFramePointer;
+
+    private static final StringBuilder builder = new StringBuilder();
+    private static final Stack<Integer> sections = new Stack<>();
+
+    private static void endSection() {
+        var start = sections.pop();
+        MemoryInstruction.print(start, MemoryInstruction.LoadAddress, Registers.ProgramCounter, line - start, Registers.ProgramCounter); // Jump to the start of the function?
     }
 
-    private static void delete(int level) {
-        for (HashMap.Entry<String, ArrayList<Node>> list : table.entrySet()) {
-            list.getValue().removeIf(node -> node.level == level);
-        }
-    }
-
-    private static void indent(int level) {
-        tableBuilder.append(" ".repeat(level * INDENT));
-    }
-
-    private String expListToString(ExpList list, int level) {
-        String expString = "";
-        List<Exp> flatList = list.getFlattened();
-
-        for (Exp exp : flatList) {
-            exp.accept(this, level, false);
-            expString += NameTy.getString(exp.expType);
-            expString += isArrayExp(exp) ? "[]" : "";
-            expString += ", ";
-        }
-        return expString.substring(0, expString.length() - 2);
-    }
-
-    private void addPredefinedFunctions() {
-        VarDecList list = new VarDecList(new SimpleDec(0, 0, new NameTy(0, 0, NameTy.INT), "value"), null);
-        insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.INT), "input", null, new NilExp(0, 0)), 0);
-        insert(new FunctionDec(0, 0, new NameTy(0, 0, NameTy.VOID), "output", list, new NilExp(0, 0)), 0);
-    }
-
-    private boolean isArrayExp(Exp exp) {
-        return exp instanceof VarExp && ((VarExp) exp).isArray;
+    private static void beginSection() {
+        sections.push(++line);
     }
 
     public void serialize(String file) throws FileNotFoundException, UnsupportedEncodingException {
-        try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".sym"), "UTF-8")) {
-            writer.println(tableBuilder.toString());
+        // Wrote this because the tm.c program doesn't seem to work with tabs (so I convert them into spaces)
+        StringBuilder result = new StringBuilder();
+        int column = 0; // Tracks the current column position
+
+        for (char c : builder.toString().toCharArray()) {
+            switch (c) {
+                case '\t' -> {
+                    int spacesToAdd = 4 - (column % 4); // Calculate required spaces
+                    if (column >= 16) {
+                        spacesToAdd = 0;
+                    }
+                    result.append(" ".repeat(spacesToAdd));
+                    column += spacesToAdd;
+                }
+                case '\n' -> {
+                    result.append(c);
+                    column = 0;
+                }
+                default -> {
+                    result.append(c);
+                    column++;
+                }
+            }
+        }
+        try (PrintWriter writer = new PrintWriter(file.replace(".cm", ".tm"), "UTF-8")) {
+            writer.println(result.toString());
         }
     }
 
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
-        if (dec.type.type == NameTy.VOID) {
-            Error.invalidTypeDeclaration(dec);
-            dec.type.type = NameTy.INT;
+        System.out.println("visit decl " + dec.name);
+        if (dec.global) {
+            dec.frameOffset = ProgramStack.globalStackOffset++;
+            ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
+        } else {
+            dec.frameOffset = ProgramStack.frameStackOffset++;
+            ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
-
-        insert(dec, level);
     }
-
+    
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
-        if (dec.type.type == NameTy.VOID) {
-            Error.invalidTypeDeclaration(dec);
-            dec.type.type = NameTy.INT;
+        System.out.println("visit decl " + dec.name);
+        if (dec.global) {
+            dec.frameOffset = ProgramStack.globalStackOffset;
+            ProgramStack.globalStackOffset += dec.size;
+            ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
+        } else {
+            dec.frameOffset = ProgramStack.frameStackOffset;
+            ProgramStack.frameStackOffset += dec.size;
+            ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
-
-        insert(dec, level);
     }
 
     @Override
     public void visit(FunctionDec dec, int level, boolean isAddress) {
-        currentFunction = dec;
-        insert(dec, level);
+        ProgramStack.frameStackOffset -= 2;
 
-        if (dec.body instanceof NilExp) {
-            return;
+        builder.append("* -> Beginning of function ").append(dec.name).append("\n");
+        beginSection();
+        if (dec.name.equals("main")) {
+            mainFunctionAddress = line;
         }
 
+        builder.append("* -> Storing return address in stack frame\n");
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
+
+        // TODO: where/how to process parameters? accept each?
         if (dec.params != null) {
-            dec.params.accept(this, level + 1, false);
+            dec.params.accept(this, level, isAddress);
         }
 
-        print(level, "Entering the scope for function " + dec.name + ":");
+        dec.body.accept(this, level, isAddress);
 
-        dec.body.accept(this, level + 1, false);
+        builder.append("* <- Return to caller\n");
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
 
-        delete(level + 1);
-        print(level, "Leaving the function scope");
-    }
-
-    @Override
-    public void visit(CompoundExp exp, int level, boolean isAddress) {
-        if (exp.decs != null) {
-            exp.decs.accept(this, level, false);
-        }
-
-        for (Exp item : exp.exps.getFlattened()) {
-            item.accept(this, level, false);
-        }
-
-        for (HashMap.Entry<String, ArrayList<Node>> list : table.entrySet()) {
-            for (Node node : list.getValue()) {
-                Dec dec = node.dec;
-                if (node.level == level) {
-                    print(level, dec.toString());
-                }
-            }
-        }
-
-        delete(level);
-    }
-
-    @Override
-    public void visit(OpExp exp, int level, boolean isAddress) {
-        Exp left = exp.left, right = exp.right;
-        left.accept(this, level, false);
-        right.accept(this, level, false);
-
-        switch (exp.operationType) {
-            case OpExp.isRelationalOperation -> {
-                exp.expType = NameTy.BOOL;
-                if (left.expType != NameTy.INT || right.expType != NameTy.INT) {
-                    Error.invalidRelationalOperation(exp);
-                }
-            }
-            case OpExp.isArithmeticOperation -> {
-                boolean typeMismatch;
-                exp.expType = NameTy.INT;
-
-                typeMismatch = (left.expType != NameTy.INT || right.expType != NameTy.INT)
-                        || (isArrayExp(left) || isArrayExp(right));
-                if (typeMismatch) {
-                    Error.invalidArithmeticOperation(exp);
-                }
-            }
-            case OpExp.isBooleanOperation -> {
-                exp.expType = NameTy.BOOL;
-                if (exp.op != OpExp.MINUS && exp.op != OpExp.UMINUS) {
-                    if (left.expType == NameTy.VOID || right.expType == NameTy.VOID) {
-                        Error.invalidBooleanOperation(exp);
-                    }
-                }
-            }
-            default -> {
-                System.err.println("");
-            }
-        }
-    }
-
-    @Override
-    public void visit(IntExp exp, int level, boolean isAddress) {
-    }
-
-    @Override
-    public void visit(NilExp exp, int level, boolean isAddress) {
-    }
-
-    @Override
-    public void visit(VarExp exp, int level, boolean isAddress) {
-        Node variable = lookup(exp._var.name);
-        if (variable == null) {
-            Error.variableDoesNotExist(exp);
-            return;
-        }
-
-        if (variable.dec instanceof ArrayDec && exp._var instanceof SimpleVar) {
-            exp.isArray = true;
-        }
-        exp.expType = variable.dec.type.type;
-        exp._var.accept(this, level, false);
-    }
-
-    @Override
-    public void visit(BoolExp exp, int level, boolean isAddress) {
+        endSection();
+        builder.append("* <- End of function ").append(dec.name).append("\n");
     }
 
     @Override
     public void visit(IfExp exp, int level, boolean isAddress) {
-        exp.test.accept(this, level, false);
-
-        if (exp.test.expType == NameTy.VOID) {
-            Error.invalidConditionType(exp);
+        if (!(exp.body instanceof NilExp)) {
+            beginSection();
         }
 
-        print(level, "Entering a new if block:");
-        exp.body.accept(this, level + 1, false);
-        print(level, "Leaving the if block");
+        exp.test.accept(this, level, isAddress);
+        exp.body.accept(this, level, isAddress);
 
+        // TODO: Create begin/end section for else statement
         if (!(exp._else instanceof NilExp)) {
-            print(level, "Entering a new else block:");
-            exp._else.accept(this, level + 1, false);
-            print(level, "Leaving the else block");
+            exp._else.accept(this, level, isAddress);
+        }
+
+        if (!(exp.body instanceof NilExp)) {
+            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.)
+            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
+            // Might need to use the test to determine what instruction to use?
+            endSection();
         }
     }
 
     @Override
-    public void visit(WhileExp exp, int level, boolean isAddress) {
-        exp.test.accept(this, level, false);
+    public void visit(OpExp exp, int level, boolean isAddress) {
 
-        if (exp.test.expType == NameTy.VOID) {
-            Error.invalidConditionType(exp);
+    }
+
+    @Override
+    public void visit(IntExp exp, int level, boolean isAddress) {
+        builder.append("* -> Loading constant ").append("\n");
+        MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, exp.value, Registers.Default); // Load the constant value into the accumulator.
+        builder.append("* <- Loaded constant ").append("\n");
+    }
+
+    @Override
+    public void visit(NilExp exp, int level, boolean isAddress) {
+
+    }
+
+    @Override
+    public void visit(VarExp exp, int level, boolean isAddress) {
+        exp._var.accept(this, level, isAddress);
+    }
+
+    @Override
+    public void visit(BoolExp exp, int level, boolean isAddress) {
+
+    }
+
+    @Override
+    public void visit(WhileExp exp, int level, boolean isAddress) {
+        if (!(exp.body instanceof NilExp)) {
+            beginSection();
         }
 
-        print(level, "Entering a new while block:");
-        exp.body.accept(this, level + 1, false);
-        print(level, "Leaving the while block");
+        exp.test.accept(this, level, isAddress);
+        exp.body.accept(this, level, isAddress);
+
+        if (!(exp.body instanceof NilExp)) {
+            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.).
+            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
+            endSection();
+        }
     }
 
     @Override
@@ -272,107 +472,125 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
         VarExp left = exp.left;
         Exp right = exp.right;
 
-        left.accept(this, level, false);
+        left.accept(this, level, true);
+
+        var _frameStackOffset = ProgramStack.frameStackOffset;
+
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, --ProgramStack.frameStackOffset, Registers.FramePointer);
+
         right.accept(this, level, false);
 
-        if (left.expType != right.expType) {
-            Error.invalidAssignExpression(exp);
-        }
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorB, _frameStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, 0, Registers.AccumulatorB); // Store the value of the right expression into the left variable.
     }
 
     @Override
     public void visit(ReturnExp exp, int level, boolean isAddress) {
-        exp.exp.accept(this, level, false);
-        if (currentFunction.type.type != exp.exp.expType) {
-            Error.invalidReturnType(exp, currentFunction.type);
+        
+    }
+
+    @Override
+    public void visit(CompoundExp exp, int level, boolean isAddress) {
+        exp.decs.accept(this, level, isAddress);
+        
+        for (var item : exp.exps.getFlattened()) {
+            item.accept(this, level, isAddress);
         }
     }
 
     @Override
     public void visit(CallExp exp, int level, boolean isAddress) {
-        String functionName = exp.func;
-        Node node = lookup(functionName);
+        // Store argument values, TODO: How to store multiple?
+        // Push original frame pointer, TODO: How to determine offset?
+        // Push frame pointer, TODO: How to determine offset?
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -1, Registers.ProgramCounter); // TODO: Need to lookup function for address
 
-        if (node == null) {
-            Error.functionDoesNotExit(exp);
-            return;
-        }
-
-        ExpList callParameterList = exp.args;
-        FunctionDec functionDec = (FunctionDec) node.dec;
-        String paramString = functionDec.params == null ? "" : functionDec.params.toString();
-        String argString = callParameterList == null ? "" : expListToString(callParameterList, level);
-        exp.expType = functionDec.type.type;
-
-        if (!paramString.equals(argString)) {
-            Error.invalidCallArgumentType(exp, argString, paramString);
-
-        }
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
     }
 
     @Override
     public void visit(NameTy type, int level, boolean isAddress) {
+
     }
 
     @Override
     public void visit(DecList list, int level, boolean isAddress) {
-        print(level++, "Entering the global scope:");
+        // Setup
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, 0, Registers.GlobalPointer);
+        MemoryInstruction.print(MemoryInstruction.Store);
 
-        addPredefinedFunctions();
-        for (Dec item : list.getFlattened()) {
-            item.accept(this, level, false);
-        }
+        beginSection();
 
-        for (HashMap.Entry<String, ArrayList<Node>> decList : table.entrySet()) {
-            for (Node node : decList.getValue()) {
-                Dec dec = node.dec;
-                if (dec instanceof FunctionDec functionDec) {
-                    if (functionDec.body instanceof NilExp) {
-                        switch (functionDec.name) {
-                            case "input" -> {
-                            }
-                            case "output" -> {
-                            }
-                            default ->
-                                Error.incompleteFunctionDefinition(functionDec);
-                        }
-                    }
-                }
-                print(level, dec.toString());
+        // Input
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);
+        RegisterInstruction.print(RegisterInstruction.Input);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer);
+
+        // Output
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, -2, Registers.FramePointer);
+        RegisterInstruction.print(RegisterInstruction.Output);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer);
+
+        endSection();
+
+        for (var item : list.getFlattened()) {
+            if (item instanceof VarDec variable) {
+                variable.global = true;
             }
+            item.accept(this, level, isAddress);
         }
 
-        if (table.get("main") == null) {
-            Error.missingMain();
-        }
-
-        delete(level);
-        print(--level, "Leaving the global scope");
+        // Exit
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress + 1), Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
+        RegisterInstruction.print(RegisterInstruction.Halt);
     }
 
     @Override
     public void visit(ExpList list, int level, boolean isAddress) {
         for (Exp item : list.getFlattened()) {
-            item.accept(this, level, false);
+            item.accept(this, level, isAddress);
         }
     }
 
     @Override
     public void visit(VarDecList list, int level, boolean isAddress) {
-        for (VarDec item : list.getFlattened()) {
-            item.accept(this, level, false);
+        for (var item : list.getFlattened()) {
+            item.accept(this, level, isAddress);
         }
     }
 
     @Override
     public void visit(IndexVar var, int level, boolean isAddress) {
-        var.exp.accept(this, level, false);
-        if (var.exp.expType != NameTy.INT) {
-            Error.invalidIndexType(var);
-        }
+        // ST 0, offset + index(5/6)
     }
-
+    
     @Override
-    public void visit(SimpleVar var, int level, boolean isAddress) {
+    public void visit(SimpleVar _var, int level, boolean isAddress) {
+        System.out.println(_var.name + " " + _var.col + ", " + _var.row);
+
+        var node = ProgramStack.find(_var.name);
+
+        int register;
+        var dec = (VarDec)node.dec;
+
+        if (dec.global) {
+            register = Registers.GlobalPointer;
+        } else {
+            register = Registers.FramePointer;
+        }
+
+        if (!isAddress) {
+            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable value into the accumulator.
+            return;
+        }
+        
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable address into the accumulator.
     }
 }

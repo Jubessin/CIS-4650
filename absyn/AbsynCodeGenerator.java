@@ -285,7 +285,20 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static int frameStackOffset = 0;
         public static int globalStackOffset = 0;
     
-        public ProgramStack() {
+        public static Node find(String name) {
+            for (var item : ProgramStack.frameStack) {
+                if (item.name.equals(name)) {
+                    return item;
+                }
+            }
+
+            for (var item : ProgramStack.globalStack) {
+                if (item.name.equals(name)) {
+                    return item;
+                }
+            }
+
+            return null;
         }
     }
     
@@ -361,6 +374,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(FunctionDec dec, int level, boolean isAddress) {
+        ProgramStack.frameStackOffset -= 2;
+
         builder.append("* <- Beginning of function ").append(dec.name).append("\n");
         beginSection();
         if (dec.name.equals("main")) {
@@ -371,7 +386,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
 
         // TODO: where/how to process parameters? accept each?
-        dec.body.accept(this, level + 1, isAddress);
+        if (dec.params != null) {
+            dec.params.accept(this, level, isAddress);
+        }
+
+        dec.body.accept(this, level, isAddress);
 
         builder.append("* <- Return to caller\n");
         MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
@@ -409,7 +428,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(IntExp exp, int level, boolean isAddress) {
-
+        builder.append("* -> Loading constant ").append("\n");
+        MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, exp.value, Registers.Default); // Load the constant value into the accumulator.
+        builder.append("* <- Loaded constant ").append("\n");
     }
 
     @Override
@@ -419,7 +440,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(VarExp exp, int level, boolean isAddress) {
-
+        exp._var.accept(this, level, isAddress);
     }
 
     @Override
@@ -448,11 +469,16 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         VarExp left = exp.left;
         Exp right = exp.right;
 
-        // TODO: I think this is right? Was in the slides.
         left.accept(this, level, true);
+
+        var _frameStackOffset = ProgramStack.frameStackOffset;
+
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, --ProgramStack.frameStackOffset, Registers.FramePointer);
+
         right.accept(this, level, false);
 
-        // TODO: Anything else to do here?
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorB, _frameStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, 0, Registers.AccumulatorB); // Store the value of the right expression into the left variable.
     }
 
     @Override
@@ -537,10 +563,29 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(IndexVar var, int level, boolean isAddress) {
+        // ST 0, offset + index(5/6)
+
 
     }
-
+    
     @Override
-    public void visit(SimpleVar var, int level, boolean isAddress) {
+    public void visit(SimpleVar _var, int level, boolean isAddress) {
+        var node = ProgramStack.find(_var.name);
+
+        int register;
+        var dec = (VarDec)node.dec;
+
+        if (dec.global) {
+            register = Registers.GlobalPointer;
+        } else {
+            register = Registers.FramePointer;
+        }
+
+        if (!isAddress) {
+            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable value into the accumulator.
+            return;
+        }
+        
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable address into the accumulator.
     }
 }
