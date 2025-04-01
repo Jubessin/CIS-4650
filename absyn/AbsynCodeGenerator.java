@@ -338,10 +338,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(SimpleDec dec, int level, boolean isAddress) {
         if (dec.global) {
-            dec.frameOffset = ++ProgramStack.globalStackOffset;
+            dec.frameOffset = ProgramStack.globalStackOffset++;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
         } else {
-            dec.frameOffset = ++ProgramStack.frameStackOffset;
+            dec.frameOffset = ProgramStack.frameStackOffset++;
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
     }
@@ -349,11 +349,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
         if (dec.global) {
-            dec.frameOffset = ++ProgramStack.globalStackOffset;
+            dec.frameOffset = ProgramStack.globalStackOffset;
             ProgramStack.globalStackOffset += dec.size;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
         } else {
-            dec.frameOffset = ++ProgramStack.frameStackOffset;
+            dec.frameOffset = ProgramStack.frameStackOffset;
             ProgramStack.frameStackOffset += dec.size;
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
@@ -512,18 +512,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             item.accept(this, level, isAddress);
         }
 
-        int stackSize = ProgramStack.globalStack.size();
-        int fpOffset = -ProgramStack.globalStack.size();
-        if (stackSize == 0) {
-            fpOffset = 0;
-        } else {
-            VarDec dec = (VarDec) ProgramStack.globalStack.get(stackSize - 1).dec;
-            dec.frameOffset;
-        }
         // Exit
-        // TODO: Original frame pointer should be negated here?
-        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, fpOffset, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, fpOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress + 1), Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
