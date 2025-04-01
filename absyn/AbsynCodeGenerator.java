@@ -196,6 +196,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     }
     
     private static int line = -1;
+    private static int mainFunctionAddress;
     
     private static final StringBuilder builder = new StringBuilder();
     private static final Stack<Integer> sections = new Stack<>();
@@ -359,6 +360,14 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         for (var item : list.getFlattened()) {
             item.accept(this, level, isAddress);
         }
+
+        // Exit
+        // Push original frame pointer, TODO: How to determine offset?
+        // Push frame pointer, TODO: How to determine offset?
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); 
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress - 1), Registers.ProgramCounter); 
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer); 
+        RegisterInstruction.print(RegisterInstruction.Halt); 
     }
 
     @Override
