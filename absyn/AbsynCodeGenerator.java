@@ -374,7 +374,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(ExpList list, int level, boolean isAddress) {
-
+        for (Exp item : list.getFlattened()) {
+            item.accept(this, level, isAddress);
+        }
     }
 
     @Override
@@ -391,6 +393,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleVar var, int level, boolean isAddress) { 
-
+        // TODO: Push address of variable to stack?
     }
 }
