@@ -399,6 +399,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         endSection();
         builder.append("* <- End of function ").append(dec.name).append("\n");
         ProgramStack.frameStackOffset = 0;
+        ProgramStack.frameStack.removeIf(var -> var.level == level + 1);
     }
 
     @Override
@@ -598,11 +599,14 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(CompoundExp exp, int level, boolean isAddress) {
+        int originalStackValue = ProgramStack.frameStackOffset;
         exp.decs.accept(this, level, false);
 
         for (Exp item : exp.exps.getFlattened()) {
             item.accept(this, level, false);
         }
+        ProgramStack.frameStackOffset = originalStackValue;
+        ProgramStack.frameStack.removeIf(var -> var.level == level + 1);
     }
 
     @Override
