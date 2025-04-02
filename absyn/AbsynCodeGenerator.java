@@ -429,8 +429,53 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(OpExp exp, int level, boolean isAddress) {
+        int lhsOffset = ProgramStack.frameStackOffset;
         exp.left.accept(this, level, isAddress);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
+        exp.right.accept(this, level, isAddress);
 
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorB, lhsOffset, Registers.FramePointer);
+
+        // need to add unary
+        switch (exp.op) {
+            case OpExp.PLUS -> {
+                RegisterInstruction.print(RegisterInstruction.Add, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.MINUS -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.DIVIDE -> {
+                RegisterInstruction.print(RegisterInstruction.Divide, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.MULTIPLY -> {
+                RegisterInstruction.print(RegisterInstruction.Multiply, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.EQ -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.GE -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.GT -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.LT -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.LE -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.NE -> {
+                RegisterInstruction.print(RegisterInstruction.Subtract, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.AND -> {
+                RegisterInstruction.print(RegisterInstruction.Multiply, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+            case OpExp.OR -> {
+                RegisterInstruction.print(RegisterInstruction.Add, Registers.AccumulatorA, Registers.AccumulatorB, Registers.AccumulatorA);
+            }
+        }
+        ProgramStack.frameStackOffset = lhsOffset;
     }
 
     @Override
@@ -461,8 +506,19 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     public void visit(WhileExp exp, int level, boolean isAddress) {
         int lineStart = line;
 
+        builder.append("* -> Test for while loop ").append("\n");
         exp.test.accept(this, level, isAddress);
-        exp.body.accept(this, level, isAddress);
+        if (exp.test instanceof OpExp opExp) {
+            switch (opExp.op) {
+                case OpExp.AND -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, value, Registers.Default); // Load the constant value into the accumulator.
+                }
+                default ->
+                    throw new AssertionError();
+            }
+        }
+        builder.append("* <- Test for while loop ").append("\n");
+        // exp.body.accept(this, level, isAddress);
     }
 
     @Override
@@ -498,6 +554,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         for (var item : exp.exps.getFlattened()) {
             item.accept(this, level, isAddress);
         }
+
     }
 
     @Override
@@ -517,7 +574,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
         ProgramStack.frameStackOffset = originalStackValue;
-        System.out.println("The original offset was " + ProgramStack.frameStackOffset);
     }
 
     @Override
