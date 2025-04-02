@@ -15,32 +15,32 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         /**
          * Specifies the default register.
          */
-        public static final int Default = 0;
+        public static int Default = 0;
 
         /**
          * The program counter, pc.
          */
-        public static final int ProgramCounter = 7;
+        public static int ProgramCounter = 7;
 
         /**
          * The global frame pointer, gp.
          */
-        public static final int GlobalPointer = 6;
+        public static int GlobalPointer = 6;
 
         /**
          * The stack frame pointer, fp.
          */
-        public static final int FramePointer = 5;
+        public static int FramePointer = 5;
 
         /**
          * Special register, ac.
          */
-        public static final int AccumulatorA = 0;
+        public static int AccumulatorA = 0;
 
         /**
          * Special register, ac1.
          */
-        public static final int AccumulatorB = 1;
+        public static int AccumulatorB = 1;
 
         /**
          * Validates the register number.
@@ -67,70 +67,70 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         /**
          * Store the value of {@code register1} into {@code register2}.
          */
-        public static final String Store = "ST";
+        public static String Store = "ST";
 
         /**
          * Load the value of {@code register2} into {@code register1}.
          */
-        public static final String Load = "LD";
+        public static String Load = "LD";
 
         /**
          * Load the address of {@code register2} into {@code register1}.
          */
-        public static final String LoadAddress = "LDA";
+        public static String LoadAddress = "LDA";
 
         /**
          * Load the {@code offset} value into {@code register1}.
          */
-        public static final String LoadConstant = "LDC";
+        public static String LoadConstant = "LDC";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is equal 0.
          */
-        public static final String JumpEqual = "JEQ";
+        public static String JumpEqual = "JEQ";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is not equal to 0.
          */
-        public static final String JumpNotEqual = "JNE";
+        public static String JumpNotEqual = "JNE";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is less than 0.
          */
-        public static final String JumpLessThan = "JLT";
+        public static String JumpLessThan = "JLT";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is less or equal to 0.
          */
-        public static final String JumpLessEqual = "JLE";
+        public static String JumpLessEqual = "JLE";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is greater than 0.
          */
-        public static final String JumpGreaterThan = "JGT";
+        public static String JumpGreaterThan = "JGT";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is greater or equal to 0.
          */
-        public static final String JumpGreaterEqual = "JGE";
+        public static String JumpGreaterEqual = "JGE";
 
         private static void validateInstruction(String instruction) {
-            assert instruction == Load
-                    || instruction == Store
-                    || instruction == JumpEqual
-                    || instruction == LoadAddress
-                    || instruction == LoadConstant
-                    || instruction == JumpNotEqual
-                    || instruction == JumpLessThan
-                    || instruction == JumpLessEqual
-                    || instruction == JumpGreaterThan
-                    || instruction == JumpGreaterEqual :
+            assert instruction.equals(Load)
+                    || instruction.equals(Store)
+                    || instruction.equals(JumpEqual)
+                    || instruction.equals(LoadAddress)
+                    || instruction.equals(LoadConstant)
+                    || instruction.equals(JumpNotEqual)
+                    || instruction.equals(JumpLessThan)
+                    || instruction.equals(JumpLessEqual)
+                    || instruction.equals(JumpGreaterThan)
+                    || instruction.equals(JumpGreaterEqual) :
                     "Invalid instruction: " + instruction;
         }
 
@@ -188,41 +188,41 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         /**
          * Stop program execution.
          */
-        public static final String Halt = "HALT";
+        public static String Halt = "HALT";
 
         /**
          * Reads the value of {@code register1} as input.
          */
-        public static final String Input = "IN";
+        public static String Input = "IN";
 
         /**
          * Writes the value of {@code register1} as output.
          */
-        public static final String Output = "OUT";
+        public static String Output = "OUT";
 
         /**
          * Computes the addition between the value of {@code register2} and
          * {@code register3}, and stores in {@code register1}.
          */
-        public static final String Add = "ADD";
+        public static String Add = "ADD";
 
         /**
          * Computes the division between the value of {@code register2} and
          * {@code register3}, and stores in {@code register1}.
          */
-        public static final String Divide = "DIV";
+        public static String Divide = "DIV";
 
         /**
          * Computes the subtraction between the value of {@code register2} and
          * {@code register3}, and stores in {@code register1}.
          */
-        public static final String Subtract = "SUB";
+        public static String Subtract = "SUB";
 
         /**
          * Computes the multiplication between the value of {@code register2}
          * and {@code register3}, and stores in {@code register1}.
          */
-        public static final String Multiply = "MUL";
+        public static String Multiply = "MUL";
 
         @SuppressWarnings("StringEquality")
         private static void validateInstruction(String instruction) {
@@ -248,17 +248,17 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static void print(int line, String instruction, int... registers) {
             validateInstruction(instruction);
 
-            builder.append(line + ":\t\t" + instruction + "\t\t");
+            builder.append(line).append(":\t\t").append(instruction).append("\t\t");
 
             int i = 0;
             for (var register : registers) {
                 Registers.validateRegister(register);
-                builder.append(register + ",");
+                builder.append(register).append(",");
                 ++i;
             }
 
             for (; i < 3; ++i) {
-                builder.append(Registers.Default + ",");
+                builder.append(Registers.Default).append(",");
             }
 
             builder.deleteCharAt(builder.length() - 1); // Remove the last comma.
@@ -304,7 +304,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     private static int line = -1;
     private static int mainFunctionAddress;
-    private static int originalFramePointer;
 
     private static final StringBuilder builder = new StringBuilder();
     private static final Stack<Integer> sections = new Stack<>();
@@ -389,10 +388,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         // TODO: where/how to process parameters? accept each?
         if (dec.params != null) {
-            dec.params.accept(this, level + 1, isAddress);
+            dec.params.accept(this, level + 1, false);
         }
 
-        dec.body.accept(this, level + 1, isAddress);
+        dec.body.accept(this, level + 1, false);
 
         builder.append("* <- Return to caller\n");
         MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
@@ -404,32 +403,59 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(IfExp exp, int level, boolean isAddress) {
-        if (!(exp.body instanceof NilExp)) {
-            beginSection();
+
+        builder.append("* -> Test for if statement ").append("\n");
+        exp.test.accept(this, level, false);
+
+        if (exp.test instanceof OpExp opExp) {
+            switch (opExp.op) {
+                // TODO: or? add/subtract/something else?
+                // TODO: -, +, *, /?
+                case OpExp.AND, OpExp.NE, OpExp.OR, OpExp.MINUS, OpExp.PLUS, OpExp.MULTIPLY, OpExp.DIVIDE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter); // Load the constant value into the accumulator.
+                }
+                case OpExp.EQ -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter); // Load the constant value into the accumulator.
+                }
+                case OpExp.GT -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpGreaterThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.GE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpGreaterEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.LE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpLessEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.LT -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+            }
         }
 
-        exp.test.accept(this, level, isAddress);
-        exp.body.accept(this, level, isAddress);
+        MemoryInstruction.print(MemoryInstruction.LoadConstant); // False case
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, 1, Registers.AccumulatorA); // True case
 
-        // TODO: Create begin/end section for else statement
+        var _line = line++;
+        builder.append("* <- Test for if statement ").append("\n");
+
+        exp.body.accept(this, level, false);
+
+        MemoryInstruction.print(_line + 1, MemoryInstruction.JumpEqual, Registers.AccumulatorA, (line - _line), Registers.ProgramCounter);
+
         if (!(exp._else instanceof NilExp)) {
-            exp._else.accept(this, level, isAddress);
-        }
-
-        if (!(exp.body instanceof NilExp)) {
-            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.)
-            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
-            // Might need to use the test to determine what instruction to use?
-            endSection();
+            _line = line++;
+            exp._else.accept(this, level, false);
+            MemoryInstruction.print(_line + 1, MemoryInstruction.LoadAddress, Registers.ProgramCounter, (line - _line) - 1, Registers.ProgramCounter);
         }
     }
 
     @Override
     public void visit(OpExp exp, int level, boolean isAddress) {
         int lhsOffset = ProgramStack.frameStackOffset;
-        exp.left.accept(this, level, isAddress);
+        exp.left.accept(this, level, false);
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
-        exp.right.accept(this, level, isAddress);
+        exp.right.accept(this, level, false);
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorB, lhsOffset, Registers.FramePointer);
 
@@ -504,7 +530,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         int lineStart = line;
 
         builder.append("* -> Test for while loop ").append("\n");
-        exp.test.accept(this, level, isAddress);
+        exp.test.accept(this, level, false);
         if (exp.test instanceof OpExp opExp) {
             switch (opExp.op) {
                 // TODO: or? add/subtract/something else?
@@ -532,12 +558,12 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.LoadConstant); // False case
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, 1, Registers.AccumulatorA); // True case
-        
+
         var _line = line++;
 
         builder.append("* <- Test for while loop ").append("\n");
 
-        exp.body.accept(this, level, isAddress);
+        exp.body.accept(this, level, false);
 
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - lineStart) - 1, Registers.ProgramCounter);
         MemoryInstruction.print(_line + 1, MemoryInstruction.JumpEqual, Registers.AccumulatorA, (line - _line) - 1, Registers.ProgramCounter);
@@ -566,15 +592,16 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(ReturnExp exp, int level, boolean isAddress) {
-
+        exp.exp.accept(this, level, false);
+        MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer);
     }
 
     @Override
     public void visit(CompoundExp exp, int level, boolean isAddress) {
-        exp.decs.accept(this, level, isAddress);
+        exp.decs.accept(this, level, false);
 
         for (var item : exp.exps.getFlattened()) {
-            item.accept(this, level, isAddress);
+            item.accept(this, level, false);
         }
     }
 
@@ -583,17 +610,17 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         var originalStackValue = ProgramStack.frameStackOffset;
 
         ProgramStack.frameStackOffset -= 2;
-        
+
         if (exp.args != null) {
             for (var arg : exp.args.getFlattened()) {
-                arg.accept(this, level, isAddress);
+                arg.accept(this, level, false);
                 MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer); // Store the argument value into the stack frame.
             }
         }
 
         ProgramStack.frameStackOffset = originalStackValue;
-        
-        builder.append("* -> call of function: " + exp.func).append("\n");
+
+        builder.append("* -> call of function: ").append(exp.func).append("\n");
 
         FunctionDec function = null;
         for (FunctionDec dec : functions) {
@@ -609,7 +636,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
         ProgramStack.frameStackOffset = originalStackValue;
-        builder.append("* <- end call of function: " + exp.func).append("\n");
+        builder.append("* <- end call of function: ").append(exp.func).append("\n");
     }
 
     @Override
@@ -623,9 +650,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         FunctionDec input = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.INT), "input", null, new NilExp(- 1, - 1));
         input.address = 3;
         functions.add(input);
-        
+
         var output = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.VOID), "output", new VarDecList(new SimpleDec(-1, -1, new NameTy(-1, -1, NameTy.INT), null), null), new NilExp(-1, -1));
-        output.address = 13;
+        output.address = 7;
         functions.add(output);
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
@@ -651,12 +678,12 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             if (item instanceof VarDec variable) {
                 variable.global = true;
             }
-            item.accept(this, level, isAddress);
+            item.accept(this, level, false);
         }
 
         // Exit
-        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, -ProgramStack.globalStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, ProgramStack.globalStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, ProgramStack.globalStackOffset, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - mainFunctionAddress + 1), Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);
@@ -666,14 +693,14 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(ExpList list, int level, boolean isAddress) {
         for (Exp item : list.getFlattened()) {
-            item.accept(this, level, isAddress);
+            item.accept(this, level, false);
         }
     }
 
     @Override
     public void visit(VarDecList list, int level, boolean isAddress) {
         for (var item : list.getFlattened()) {
-            item.accept(this, level, isAddress);
+            item.accept(this, level, false);
         }
     }
 
