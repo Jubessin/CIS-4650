@@ -632,11 +632,15 @@ public class AbsynCodeGenerator implements AbsynVisitor {
                 function = dec;
             }
         }
-        originalStackValue = ProgramStack.frameStackOffset;
-        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); // TODO: Need to lookup function for address
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - function.address + 1), Registers.ProgramCounter); // TODO: Need to lookup function for address
+        // this check is pretty much useless, I just do it to get rid of the warning
+        // this should never be null since we handle that in the semantic analyzer
+        if (function != null) {
+            originalStackValue = ProgramStack.frameStackOffset;
+            MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
+            MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
+            MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); // TODO: Need to lookup function for address
+            MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - function.address + 1), Registers.ProgramCounter); // TODO: Need to lookup function for address
+        }
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
         ProgramStack.frameStackOffset = originalStackValue;
@@ -682,7 +686,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             if (item instanceof VarDec variable) {
                 variable.global = true;
             }
-            item.accept(this, level, false);
+            if (item != null) {
+                item.accept(this, level, false);
+            }
         }
 
         // Exit

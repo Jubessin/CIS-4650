@@ -338,7 +338,7 @@ public class AbsynSemanticAnalyzer implements AbsynVisitor {
                         }
                     }
                 }
-                print(level, dec.toString());
+                // print(level, dec.toString());
             }
         }
 
