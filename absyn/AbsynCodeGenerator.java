@@ -585,14 +585,12 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         ProgramStack.frameStackOffset -= 2;
         
         if (exp.args != null) {
-        //     exp.args.accept(this, level, isAddress);
-        // }
             for (var arg : exp.args.getFlattened()) {
                 arg.accept(this, level, isAddress);
                 MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer); // Store the argument value into the stack frame.
             }
         }
-        
+
         ProgramStack.frameStackOffset = originalStackValue;
         
         builder.append("* -> call of function: " + exp.func).append("\n");
