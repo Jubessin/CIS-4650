@@ -88,7 +88,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
          * Jump to {@code offset} + value of {@code register2}, if
          * {@code register1} is equal 0.
          */
-        public static final String JumpEqual = "JE";
+        public static final String JumpEqual = "JEQ";
 
         /**
          * Jump to {@code offset} + value of {@code register2}, if
@@ -510,15 +510,40 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         exp.test.accept(this, level, isAddress);
         if (exp.test instanceof OpExp opExp) {
             switch (opExp.op) {
-                case OpExp.AND -> {
-                    MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, value, Registers.Default); // Load the constant value into the accumulator.
+                // TODO: or? add/subtract/something else?
+                // TODO: -, +, *, /?
+                case OpExp.AND, OpExp.NE, OpExp.OR, OpExp.MINUS, OpExp.PLUS, OpExp.MULTIPLY, OpExp.DIVIDE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter); // Load the constant value into the accumulator.
                 }
-                default ->
-                    throw new AssertionError();
+                case OpExp.EQ -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter); // Load the constant value into the accumulator.
+                }
+                case OpExp.GT -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpGreaterThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.GE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpGreaterEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.LE -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpLessEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
+                case OpExp.LT -> {
+                    MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
+                }
             }
         }
+        MemoryInstruction.print(MemoryInstruction.LoadConstant); // False case
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);
+        MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, 1, Registers.AccumulatorA); // True case
         builder.append("* <- Test for while loop ").append("\n");
-        // exp.body.accept(this, level, isAddress);
+
+        beginSection();
+        exp.body.accept(this, level, isAddress);
+
+        System.out.println("line " + line);
+        System.out.println("line start " + lineStart);
+
+        MemoryInstruction.print(lineStart, MemoryInstruction.JumpEqual, Registers.AccumulatorA, (line - lineStart) + 1, Registers.ProgramCounter);
     }
 
     @Override
@@ -554,7 +579,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         for (var item : exp.exps.getFlattened()) {
             item.accept(this, level, isAddress);
         }
-
     }
 
     @Override
@@ -587,6 +611,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         FunctionDec input = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.INT), "input", null, new NilExp(- 1, - 1));
         input.address = 3;
         functions.add(input);
+        // var output = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.VOID), "output", )
         MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, 0, Registers.GlobalPointer);
         MemoryInstruction.print(MemoryInstruction.Store);
