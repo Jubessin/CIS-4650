@@ -1,0 +1,12 @@
+/*
+*   File Name: 1.cm
+*   Description: TODO
+*/
+
+int a;
+int b[10];
+int c[5];
+
+void main(void) {
+    a = 5;
+}
