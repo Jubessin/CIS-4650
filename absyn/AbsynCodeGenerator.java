@@ -599,6 +599,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(CompoundExp exp, int level, boolean isAddress) {
+        builder.append("* -> Beginning of compound statement\n");
         int originalStackValue = ProgramStack.frameStackOffset;
         exp.decs.accept(this, level, false);
 
@@ -607,6 +608,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
         ProgramStack.frameStackOffset = originalStackValue;
         ProgramStack.frameStack.removeIf(var -> var.level == level + 1);
+        builder.append("* <- End of compound statement\n");
     }
 
     @Override
