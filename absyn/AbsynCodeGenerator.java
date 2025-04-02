@@ -286,10 +286,15 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static int globalStackOffset = 0;
 
         public static Node find(String name) {
+            Node node = null;
             for (Node item : ProgramStack.frameStack) {
                 if (item.name.equals(name)) {
-                    return item;
+                    node = item;
                 }
+            }
+
+            if (node != null) {
+                return node;
             }
 
             for (Node item : ProgramStack.globalStack) {
