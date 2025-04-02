@@ -5,7 +5,7 @@ import java.util.*;
 
 public class AbsynCodeGenerator implements AbsynVisitor {
 
-    public ArrayList<Node> functions = new ArrayList<>();
+    public ArrayList<FunctionDec> functions = new ArrayList<>();
 
     /**
      * The set of predefined registers available for generation.
@@ -281,10 +281,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         public static ArrayList<Node> globalStack = new ArrayList<>();
         public static ArrayList<Node> frameStack = new ArrayList<>();
-    
+
         public static int frameStackOffset = 0;
         public static int globalStackOffset = 0;
-    
+
         public static Node find(String name) {
             for (var item : ProgramStack.frameStack) {
                 System.out.println("item in frame: " + item.name);
@@ -292,7 +292,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
                     return item;
                 }
             }
-            
+
             for (var item : ProgramStack.globalStack) {
                 if (item.name.equals(name)) {
                     return item;
@@ -302,7 +302,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             return null;
         }
     }
-    
+
     private static int line = -1;
     private static int mainFunctionAddress;
     private static int originalFramePointer;
@@ -353,53 +353,56 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     public void visit(SimpleDec dec, int level, boolean isAddress) {
         System.out.println("visit decl " + dec.name);
         if (dec.global) {
-            dec.frameOffset = ProgramStack.globalStackOffset++;
+            dec.frameOffset = ProgramStack.globalStackOffset--;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
         } else {
-            dec.frameOffset = ProgramStack.frameStackOffset++;
+            dec.frameOffset = ProgramStack.frameStackOffset--;
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
     }
-    
+
     @Override
     public void visit(ArrayDec dec, int level, boolean isAddress) {
         System.out.println("visit decl " + dec.name);
         if (dec.global) {
             dec.frameOffset = ProgramStack.globalStackOffset;
-            ProgramStack.globalStackOffset += dec.size;
+            ProgramStack.globalStackOffset -= dec.size;
             ProgramStack.globalStack.add(new Node(dec.name, dec, 0));
         } else {
             dec.frameOffset = ProgramStack.frameStackOffset;
-            ProgramStack.frameStackOffset += dec.size;
+            ProgramStack.frameStackOffset -= dec.size;
             ProgramStack.frameStack.add(new Node(dec.name, dec, level));
         }
     }
 
     @Override
     public void visit(FunctionDec dec, int level, boolean isAddress) {
-        ProgramStack.frameStackOffset -= 2;
+        ProgramStack.frameStackOffset = -2;
 
-        builder.append("* <- Beginning of function ").append(dec.name).append("\n");
+        builder.append("* -> Beginning of function ").append(dec.name).append("\n");
         beginSection();
         if (dec.name.equals("main")) {
             mainFunctionAddress = line;
         }
 
-        builder.append("* <- Storing return address in stack frame\n");
+        builder.append("* -> Storing return address in stack frame\n");
+        dec.address = line;
+        functions.add(dec);
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, -1, Registers.FramePointer);     // Store the return address
 
         // TODO: where/how to process parameters? accept each?
         if (dec.params != null) {
-            dec.params.accept(this, level, isAddress);
+            dec.params.accept(this, level + 1, isAddress);
         }
 
-        dec.body.accept(this, level, isAddress);
+        dec.body.accept(this, level + 1, isAddress);
 
         builder.append("* <- Return to caller\n");
         MemoryInstruction.print(MemoryInstruction.Load, Registers.ProgramCounter, -1, Registers.FramePointer); // Load the return address, and return to caller.
 
         endSection();
         builder.append("* <- End of function ").append(dec.name).append("\n");
+        ProgramStack.frameStackOffset = 0;
     }
 
     @Override
@@ -426,6 +429,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(OpExp exp, int level, boolean isAddress) {
+        exp.left.accept(this, level, isAddress);
 
     }
 
@@ -438,7 +442,6 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(NilExp exp, int level, boolean isAddress) {
-
     }
 
     @Override
@@ -448,27 +451,24 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(BoolExp exp, int level, boolean isAddress) {
-
+        int value = exp.value ? 1 : 0;
+        builder.append("* -> Loading constant ").append("\n");
+        MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, value, Registers.Default); // Load the constant value into the accumulator.
+        builder.append("* <- Loaded constant ").append("\n");
     }
 
     @Override
     public void visit(WhileExp exp, int level, boolean isAddress) {
-        if (!(exp.body instanceof NilExp)) {
-            beginSection();
-        }
+        int lineStart = line;
 
         exp.test.accept(this, level, isAddress);
         exp.body.accept(this, level, isAddress);
-
-        if (!(exp.body instanceof NilExp)) {
-            // TODO: This needs to be changed. End of a section can be more than just LDA (e.g., JEQ, JNE, etc.).
-            // Seems it should always be a memory instruction though, maybe just update endSection to accept memory instruction print function arguments?
-            endSection();
-        }
     }
 
     @Override
     public void visit(AssignExp exp, int level, boolean isAddress) {
+
+        builder.append("* -> Assigning ").append(exp.left._var.name).append("\n");
         VarExp left = exp.left;
         Exp right = exp.right;
 
@@ -476,12 +476,14 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         var _frameStackOffset = ProgramStack.frameStackOffset;
 
-        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, --ProgramStack.frameStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
 
         right.accept(this, level, false);
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorB, _frameStackOffset, Registers.FramePointer);
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, 0, Registers.AccumulatorB); // Store the value of the right expression into the left variable.
+        ++ProgramStack.frameStackOffset;
+        builder.append("* <- Exiting assigning ").append(exp.left._var.name).append("\n");
     }
 
     @Override
@@ -492,7 +494,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(CompoundExp exp, int level, boolean isAddress) {
         exp.decs.accept(this, level, isAddress);
-        
+
         for (var item : exp.exps.getFlattened()) {
             item.accept(this, level, isAddress);
         }
@@ -501,12 +503,21 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(CallExp exp, int level, boolean isAddress) {
         // Store argument values, TODO: How to store multiple?
-        // Push original frame pointer, TODO: How to determine offset?
-        // Push frame pointer, TODO: How to determine offset?
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter);
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -1, Registers.ProgramCounter); // TODO: Need to lookup function for address
+        FunctionDec function = null;
+        for (FunctionDec dec : functions) {
+            if (dec.name.equals(exp.func)) {
+                function = dec;
+            }
+        }
+        int originalStackValue = ProgramStack.frameStackOffset;
+        MemoryInstruction.print(MemoryInstruction.Store, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, ProgramStack.frameStackOffset, Registers.FramePointer);
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, 1, Registers.ProgramCounter); // TODO: Need to lookup function for address
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, -(line - function.address + 1), Registers.ProgramCounter); // TODO: Need to lookup function for address
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.FramePointer, 0, Registers.FramePointer);     // Pop frame pointer
+        ProgramStack.frameStackOffset = originalStackValue;
+        System.out.println("The original offset was " + ProgramStack.frameStackOffset);
     }
 
     @Override
@@ -517,6 +528,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     @Override
     public void visit(DecList list, int level, boolean isAddress) {
         // Setup
+        FunctionDec input = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.INT), "input", null, new NilExp(- 1, - 1));
+        input.address = 3;
+        functions.add(input);
         MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.FramePointer, 0, Registers.GlobalPointer);
         MemoryInstruction.print(MemoryInstruction.Store);
@@ -570,9 +584,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     public void visit(IndexVar var, int level, boolean isAddress) {
         // ST 0, offset + index(5/6)
 
-
     }
-    
+
     @Override
     public void visit(SimpleVar _var, int level, boolean isAddress) {
         System.out.println(_var.name + " " + _var.col + ", " + _var.row);
@@ -580,7 +593,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         var node = ProgramStack.find(_var.name);
 
         int register;
-        var dec = (VarDec)node.dec;
+        var dec = (VarDec) node.dec;
 
         if (dec.global) {
             register = Registers.GlobalPointer;
@@ -589,10 +602,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
 
         if (!isAddress) {
-            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable value into the accumulator.
+            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, ((VarDec) node.dec).frameOffset, register); // Load the variable value into the accumulator.
             return;
         }
-        
-        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, ((VarDec)node.dec).frameOffset, register); // Load the variable address into the accumulator.
+
+        MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, ((VarDec) node.dec).frameOffset, register); // Load the variable address into the accumulator.
     }
 }
