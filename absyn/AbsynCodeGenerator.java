@@ -251,7 +251,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             builder.append(line).append(":\t\t").append(instruction).append("\t\t");
 
             int i = 0;
-            for (var register : registers) {
+            for (int register : registers) {
                 Registers.validateRegister(register);
                 builder.append(register).append(",");
                 ++i;
@@ -286,13 +286,13 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         public static int globalStackOffset = 0;
 
         public static Node find(String name) {
-            for (var item : ProgramStack.frameStack) {
+            for (Node item : ProgramStack.frameStack) {
                 if (item.name.equals(name)) {
                     return item;
                 }
             }
 
-            for (var item : ProgramStack.globalStack) {
+            for (Node item : ProgramStack.globalStack) {
                 if (item.name.equals(name)) {
                     return item;
                 }
@@ -309,7 +309,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     private static final Stack<Integer> sections = new Stack<>();
 
     private static void endSection() {
-        var start = sections.pop();
+        int start = sections.pop();
         MemoryInstruction.print(start, MemoryInstruction.LoadAddress, Registers.ProgramCounter, line - start, Registers.ProgramCounter); // Jump to the start of the function?
     }
 
@@ -436,7 +436,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, 1, Registers.AccumulatorA); // True case
 
-        var _line = line++;
+        int _line = line++;
         builder.append("* <- Test for if statement ").append("\n");
 
         exp.body.accept(this, level, false);
@@ -559,7 +559,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);
         MemoryInstruction.print(MemoryInstruction.LoadConstant, Registers.AccumulatorA, 1, Registers.AccumulatorA); // True case
 
-        var _line = line++;
+        int _line = line++;
 
         builder.append("* <- Test for while loop ").append("\n");
 
@@ -578,7 +578,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         left.accept(this, level, true);
 
-        var _frameStackOffset = ProgramStack.frameStackOffset;
+        int _frameStackOffset = ProgramStack.frameStackOffset;
 
         MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
 
@@ -600,19 +600,19 @@ public class AbsynCodeGenerator implements AbsynVisitor {
     public void visit(CompoundExp exp, int level, boolean isAddress) {
         exp.decs.accept(this, level, false);
 
-        for (var item : exp.exps.getFlattened()) {
+        for (Exp item : exp.exps.getFlattened()) {
             item.accept(this, level, false);
         }
     }
 
     @Override
     public void visit(CallExp exp, int level, boolean isAddress) {
-        var originalStackValue = ProgramStack.frameStackOffset;
+        int originalStackValue = ProgramStack.frameStackOffset;
 
         ProgramStack.frameStackOffset -= 2;
 
         if (exp.args != null) {
-            for (var arg : exp.args.getFlattened()) {
+            for (Exp arg : exp.args.getFlattened()) {
                 arg.accept(this, level, false);
                 MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer); // Store the argument value into the stack frame.
             }
@@ -651,8 +651,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         input.address = 3;
         functions.add(input);
 
-        var output = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.VOID), "output", new VarDecList(new SimpleDec(-1, -1, new NameTy(-1, -1, NameTy.INT), null), null), new NilExp(-1, -1));
-        output.address = 7;
+        FunctionDec output = new FunctionDec(-1, -1, new NameTy(-1, -1, NameTy.VOID), "output", new VarDecList(new SimpleDec(-1, -1, new NameTy(-1, -1, NameTy.INT), null), null), new NilExp(-1, -1));
+        output.address = 6;
         functions.add(output);
 
         MemoryInstruction.print(MemoryInstruction.Load, Registers.GlobalPointer, 0, Registers.Default);
@@ -674,7 +674,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
         endSection();
 
-        for (var item : list.getFlattened()) {
+        for (Dec item : list.getFlattened()) {
             if (item instanceof VarDec variable) {
                 variable.global = true;
             }
@@ -699,7 +699,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(VarDecList list, int level, boolean isAddress) {
-        for (var item : list.getFlattened()) {
+        for (VarDec item : list.getFlattened()) {
             item.accept(this, level, false);
         }
     }
@@ -712,10 +712,10 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(SimpleVar _var, int level, boolean isAddress) {
-        var node = ProgramStack.find(_var.name);
+        Node node = ProgramStack.find(_var.name);
 
         int register;
-        var dec = (VarDec) node.dec;
+        VarDec dec = (VarDec) node.dec;
 
         if (dec.global) {
             register = Registers.GlobalPointer;
