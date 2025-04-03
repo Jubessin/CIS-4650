@@ -15,7 +15,7 @@ public class CM {
 
     private static final String PROGRAM_USAGE
             = """
-              java -cp <cup_jar_path> CM -a <input_file>
+              java -cp <cup_jar_path> CM -a -s -c <input_file>
               \t-a             (Optional) Saves the abstract syntax tree to a file
               \t-s             (Optional) Saves the symbol table to a file
               \t-c             (Optional) Saves generated assembly code
