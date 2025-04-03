@@ -374,7 +374,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             dec.frameOffset = ProgramStack.frameStackOffset;
             if (processParamList) {
                 ProgramStack.frameStackOffset -= 1;
-
+                dec.isParam = true;
             } else {
                 ProgramStack.frameStackOffset -= dec.size;
             }
@@ -739,7 +739,7 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         Node node = ProgramStack.find(var.name);
 
         int register;
-        VarDec dec = (VarDec) node.dec;
+        ArrayDec dec = (ArrayDec) node.dec;
         if (dec.global) {
             register = Registers.GlobalPointer;
         } else {
@@ -748,7 +748,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         // ST 0, offset + index(5/6)
         if (isAddress) {
             int arrayOffset = ProgramStack.frameStackOffset;
-            MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            if (dec.isParam) {
+                MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            } else {
+                MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            }
             MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
             var.exp.accept(this, level, false);
             MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 1, Registers.ProgramCounter);
@@ -759,7 +763,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
             ProgramStack.frameStackOffset = arrayOffset;
         } else {
             int arrayOffset = ProgramStack.frameStackOffset;
-            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            if (dec.isParam) {
+                MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            } else {
+                MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            }
             MemoryInstruction.print(MemoryInstruction.Store, Registers.AccumulatorA, ProgramStack.frameStackOffset--, Registers.FramePointer);
             var.exp.accept(this, level, false);
             MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 1, Registers.ProgramCounter);
@@ -786,6 +794,11 @@ public class AbsynCodeGenerator implements AbsynVisitor {
         }
 
         if (!isAddress && !(dec instanceof ArrayDec)) {
+            MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
+            return;
+        }
+
+        if (dec instanceof ArrayDec arrayDec && arrayDec.isParam) {
             MemoryInstruction.print(MemoryInstruction.Load, Registers.AccumulatorA, dec.frameOffset, register); // Load the variable value into the accumulator.
             return;
         }

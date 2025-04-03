@@ -8,58 +8,32 @@
 *                This file will also have function prototypes and declarations (for the same function).
 */
 
-int _integer;
-bool _boolean;
-
-int getInteger(void);
-bool getBoolean(void);
-void setInteger(int integer);
-void setBoolean(bool boolean);
-
-int arrayFunction(int array[]) {
-    return array[2];
-}
-
-bool _isPositive(int value);
-
-bool _isPositive(int value) 
-{
-    return value > 0;
-}
-
-void setInteger(int integer) {
-    _integer = integer;
-}
-
-int getInteger(void) {
-    return _integer;
-}
-
-void setBoolean(bool b) {
-    _boolean = b;
-}
-
-bool getBoolean(void) {
-    return _boolean;
+bool isGreater(int num, int test) {
+    return num > test;
 }
 
 void main(void) {
+    int i;
     int a[5];
+    int test;
+    int count;
 
-    a[_integer] = _integer;
-
-    _integer = a[_integer];
-
-    while (_integer < 80) {
-        a[getInt()] = 0;
-        _integer = 2 + 1;
+    test = 5;
+    count = 0;
+    i = 0;
+    while(i < 5) {
+        a[i] = input();
+        output(i);
+        i = i + 1;
     }
 
-    if (_isPositive(2)) {
-        _boolean = true;
-        return;
+    i = 0;
+    while(i < 5) {
+        if (a[i] > test) {
+            count = count + 1;
+        }
+        i = i + 1;
     }
-    else {
-        _boolean = false;
-    }
+
+    output(count);
 }
