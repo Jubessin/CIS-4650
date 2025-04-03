@@ -3,9 +3,11 @@
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
 *                - invalid type specifier for variable
 *                - assignation in variable declaration
+*                - assignation with invalid type
 */
 
 void function_with_invalid_name(void) {
     float _float_variable[3];
     int a = 3;
+    a = false;
 }

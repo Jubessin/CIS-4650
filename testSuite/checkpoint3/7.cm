@@ -1,9 +1,9 @@
 /*
 *   File Name: 7.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting semantic errors for:
-*                - redeclared variables
-*                - redefined functions
-*                - calls to a function with an invalid argument
+*                - redeclared variable
+*                - redefined function
+*                - call to a function with an invalid argument
 */
 
 void run(void) {
