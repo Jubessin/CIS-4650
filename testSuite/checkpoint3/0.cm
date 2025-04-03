@@ -1,4 +1,30 @@
 /*
 *   File Name: 0.cm
-*   Description: TODO
+*   Description: Tests that the CM compiler correctly handles:
+*                - variable redefinitions
+*                - index out of bounds errors
+*                - pass by value and pass by address
+*                
 */
+
+int x[2];
+
+int function(bool a, bool b[], int c) {
+    b[c] = a;
+    return c - 7;
+}
+
+void main(void) {
+    x = 5;
+
+    bool x;
+
+    x[0] = false;
+
+    x[-1] = input();
+
+    int y[5];
+    bool z[y[2]];
+
+    y[5] = function(false, z, -1);
+}

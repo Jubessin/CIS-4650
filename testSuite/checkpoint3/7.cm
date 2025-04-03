@@ -1,4 +1,17 @@
 /*
 *   File Name: 7.cm
-*   Description: TODO
+*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
+*                - an if statement without a test
+*                - an iteration statement without a body
 */
+
+void run(void) {
+    int i;
+    i = 8;
+
+    if () {
+
+    }
+
+    while (i > 0) 
+}

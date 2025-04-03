@@ -1,4 +1,31 @@
 /*
 *   File Name: 3.cm
-*   Description: TODO
+*   Description: Tests that the CM compiler can handle variable declarations, assignments.
+*                This file will also have function prototypes and declarations (for the same function)
+
 */
+
+
+int a;
+
+int recurse(int b) {
+    if (b >= 5)
+        return b;
+
+    return recurse(input(output(input(output(a)))));
+}
+
+int main(void) {
+    int a;
+
+    if (true) {
+        int a;
+        a = 5;
+        a = input(output(input(output(a))));
+    }
+
+    bool b;
+    b = a > 4;
+
+    return true && (false || true) || b && a == a;
+}

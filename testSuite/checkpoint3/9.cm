@@ -1,4 +1,40 @@
 /*
 *   File Name: 9.cm
-*   Description: TODO
+*   Description: Tests declaring input and output functions, and a file without a main function.
 */
+
+void function_in_file_without_main(void) {
+
+}
+
+bool function2_in_file_without_main(void) {
+
+}
+
+void input(void) {
+
+}
+
+void output(void) {
+
+}
+
+/*
+*   comment
+*/
+
+int num(void);
+int num(int value);
+
+bool isTrue(void) {
+    return true;
+}
+
+bool isTrue(void) {
+    return false;
+}
+
+void function_with_invalid_name(void) {
+    int a;
+    int a;
+}
