@@ -1,31 +1,32 @@
 /*
 *   File Name: 3.cm
-*   Description: Tests that the CM compiler can handle variable declarations, assignments.
-*                This file will also have function prototypes and declarations (for the same function)
-
+*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
+*                - defining predefined function ("output")
+*                - assigning invalid value to variable
+*                - returning invalid expression (nested version)
 */
 
 
-int a;
-
-int recurse(int b) {
-    if (b >= 5)
-        return b;
-
-    return recurse(input(output(input(output(a)))));
+int fibonacci(int n) {
+    if (n <= 0)
+        return 0;
+    else if (n == 1)
+        return 1;
+    return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-int main(void) {
-    int a;
-
-    if (true) {
-        int a;
-        a = 5;
-        a = input(output(input(output(a))));
+int main() {
+    int num;
+    
+    /* enter a number */
+    num = input();
+    
+    if (num < 0) {
+        return 0;
     }
-
-    bool b;
-    b = a > 4;
-
-    return true && (false || true) || b && a == a;
+    else {
+        output(fibonacci(num));
+    }
+    
+    return 0;
 }
