@@ -447,6 +447,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
                     MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
                 }
             }
+        } else {
+            MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
         }
 
         MemoryInstruction.print(MemoryInstruction.LoadConstant); // False case
@@ -573,6 +575,8 @@ public class AbsynCodeGenerator implements AbsynVisitor {
                     MemoryInstruction.print(MemoryInstruction.JumpLessThan, Registers.AccumulatorA, 2, Registers.ProgramCounter);
                 }
             }
+        } else {
+            MemoryInstruction.print(MemoryInstruction.JumpNotEqual, Registers.AccumulatorA, 2, Registers.ProgramCounter);
         }
         MemoryInstruction.print(MemoryInstruction.LoadConstant); // False case
         MemoryInstruction.print(MemoryInstruction.LoadAddress, Registers.ProgramCounter, 1, Registers.ProgramCounter);

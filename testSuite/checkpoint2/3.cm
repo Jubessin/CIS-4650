@@ -7,11 +7,26 @@
 */
 
 
-int output(void);
+int fibonacci(int n) {
+    if (n <= 0)
+        return 0;
+    else if (n == 1)
+        return 1;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
 
-int main(void) {
-    int a;
-    a = true;
-
-    return true && (false || true);
+int main() {
+    int num;
+    
+    /* enter a number */
+    num = input();
+    
+    if (num < 0) {
+        return 0;
+    }
+    else {
+        output(fibonacci(num));
+    }
+    
+    return 0;
 }
