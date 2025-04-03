@@ -384,6 +384,9 @@ public class AbsynCodeGenerator implements AbsynVisitor {
 
     @Override
     public void visit(FunctionDec dec, int level, boolean isAddress) {
+        if (dec.body instanceof NilExp) {
+            return;
+        }
         ProgramStack.frameStackOffset = -2;
 
         builder.append("* -> Beginning of function ").append(dec.name).append("\n");
