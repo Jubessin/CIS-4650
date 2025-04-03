@@ -3,6 +3,7 @@ package absyn;
 public class ArrayDec extends VarDec {
 
     public int size;
+    public boolean isParam = false;
 
     public ArrayDec(int row, int col, NameTy type, String name, int size) {
         super(row, col, type, name);
