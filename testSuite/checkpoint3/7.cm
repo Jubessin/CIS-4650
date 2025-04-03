@@ -1,17 +1,30 @@
 /*
 *   File Name: 7.cm
-*   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - an if statement without a test
-*                - an iteration statement without a body
+*   Description: Tests that the CM compiler correctly identifies and handles reporting semantic errors for:
+*                - redeclared variables
+*                - redefined functions
+*                - calls to a function with an invalid argument
 */
 
 void run(void) {
     int i;
     i = 8;
 
-    if () {
+    if (true) {
 
     }
 
-    while (i > 0) 
+    while (i > 0) {
+
+    }
+}
+
+void run(void) {
+
+}
+
+bool main(int a) {
+    bool main;
+    bool main;
+    run(3);
 }
