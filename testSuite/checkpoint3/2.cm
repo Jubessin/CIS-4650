@@ -1,24 +1,32 @@
 /*
 *   File Name: 2.cm
 *   Description: Tests that the CM compiler correctly identifies and handles reporting errors for:
-*                - function redefinitions
-*                - variable redeclarations
-*                - function prototype redefinitions
+*                - arithmetic testing
 */
 
-int num(void);
-int num(int value);
+int getNext(int prev, int current) {
+    return prev + current;
+}    
+void main(void) {
+    int i;
+    int numDigits;
+    int previous;
+    int current;
 
-bool isTrue(void) {
-    return true;
-}
+    numDigits = 15;
+    previous  = 1;
+    current = 1;
+    output(previous);
+    output(current);
+    i = 2;
+    while (i < numDigits) {
+        int value;
+        value = getNext(previous, current);
 
-bool isTrue(void) {
-    return false;
-}
+        previous = current;
+        current = value;
+        output(current);
+        i = i + 1;
+    }
 
-
-void function_with_invalid_name(void) {
-    int a;
-    int a;
 }

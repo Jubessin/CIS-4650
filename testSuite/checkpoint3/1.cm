@@ -8,10 +8,6 @@
 *                This file will also have function prototypes and declarations (for the same function).
 */
 
-bool isGreater(int num, int test) {
-    return num > test;
-}
-
 void main(void) {
     int i;
     int a[5];
@@ -23,7 +19,6 @@ void main(void) {
     i = 0;
     while(i < 5) {
         a[i] = input();
-        output(i);
         i = i + 1;
     }
 
